@@ -1,4 +1,5 @@
 import msprime
+import numpy as np
 
 
 # an example msprime usage
@@ -36,7 +37,7 @@ def simulate_haplotype_matrix(sample_size,
     return haplotype_matrix
 
 
-def compress_to_genotype_matrix(haplotype_matrix):
+def compress_to_genotype_matrix(haplotypes):
     """
     Assumes 0s and 1s in haplotype matrix (output of msprime)
 
@@ -49,10 +50,10 @@ def compress_to_genotype_matrix(haplotype_matrix):
            [1, 0, 1, ..., 0, 0, 0],
            [1, 1, 1, ..., 1, 1, 0]])
     """
-    return haplotype_matrix[::2] + haplotype_matrix[1::2]
+    return haplotypes[::2] + haplotypes[1::2]
 
 
-def get_incomplete_phasing_matrix(genotype_matrix):
+def get_incomplete_phasing_matrix(genotypes):
     """
     Assumes 0s, 1s, and 2s in genotype matrix
 
@@ -65,6 +66,12 @@ def get_incomplete_phasing_matrix(genotype_matrix):
            [0, 0, 0, ..., 0, 0, 2]], dtype=uint8)
 
     Returns:
-    a matrix with -1s and 1s in homozygous positions. 0s in unphased, heterozygous positions
+        a matrix with -1s and 1s in homozygous positions. 0s in unphased, heterozygous positions
     """
-    return -1*(genotype_matrix == 0).astype(int) + 1*(genotype_matrix == 2).astype(int)
+    to_duplicate = -1*(genotypes == 0).astype(int) + 1*(genotypes == 2).astype(int)
+    n, m = to_duplicate.shape
+
+    incomplete_haplotypes = np.zeros((2*n, m))
+    incomplete_haplotypes[::2] = to_duplicate
+    incomplete_haplotypes[1::2] = to_duplicate
+    return incomplete_haplotypes

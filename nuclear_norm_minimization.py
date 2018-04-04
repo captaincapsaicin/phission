@@ -45,7 +45,7 @@ def get_sum_to_0_constraints(A, X):
     We need each pair of phased haplotypes to sum to 0 (i.e. one is -1 and the other is 1)
     """
     constraints = []
-    indexes = get_unmasked_indexes(A)
+    indexes = get_unmasked_even_indexes(A)
     for i, j in enumerate(indexes):
         constraints.append(X[i, j] + X[i + 1, j] == 0)
     return constraints
@@ -58,7 +58,7 @@ def get_mask(A):
     return A != 0
 
 
-def get_unmasked_indexes(A):
+def get_unmasked_even_indexes(A):
     """
     Takes in a matrix A of haplotypes and returns the ones where we will have
     to do phasing (i.e. 0s)

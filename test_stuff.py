@@ -3,7 +3,8 @@ import unittest
 
 import numpy as np
 
-from nuclear_norm_minimization import get_unmasked_indexes, phase
+from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
+from nuclear_norm_minimization import get_unmasked_even_indexes, phase
 from switch_error import switch_error
 
 
@@ -43,7 +44,7 @@ class TestStuff(unittest.TestCase):
         # self.assertEqual(m_complete[1, 0], m_complete_expected[1, 0])
         # self.assertEqual(m_complete[1, 1], m_complete_expected[1, 1])
 
-    def test_unmasked_indexes(self):
+    def test_unmasked_even_indexes(self):
         """
         Recover indexes (i, j) where we need to phase. From a haplotype matrix!
 
@@ -57,7 +58,7 @@ class TestStuff(unittest.TestCase):
 
         # Counter best way to compare lists
         # https://stackoverflow.com/questions/7828867/how-to-efficiently-compare-two-unordered-lists-not-sets-in-python
-        self.assertEqual(Counter(get_unmasked_indexes(m)), Counter(indexes_expected))
+        self.assertEqual(Counter(get_unmasked_even_indexes(m)), Counter(indexes_expected))
 
     def test_complete(self):
         """
@@ -83,3 +84,38 @@ class TestStuff(unittest.TestCase):
         expected = np.array(expected)
 
         self.assertEqual(switch_error(observed, expected), 2)
+
+    def test_compress_to_genotypes(self):
+        haplotypes = [[1, 0, 1, 0],
+                      [1, 0, 0, 0],
+                      [1, 1, 1, 0],
+                      [1, 1, 0, 1]]
+        haplotypes = np.array(haplotypes)
+
+        genotypes = [[2, 0, 1, 0],
+                     [2, 2, 1, 1]]
+        genotypes = np.array(genotypes)
+
+        compressed = compress_to_genotype_matrix(haplotypes)
+        self.assertEqual(tuple(compressed[0]), tuple(genotypes[0]))
+        self.assertEqual(tuple(compressed[1]), tuple(genotypes[1]))
+
+    def test_get_incomplete_phasing_matrix(self):
+        genotypes = [[2, 0, 1, 0],
+                     [2, 2, 1, 1]]
+        genotypes = np.array(genotypes)
+
+        # TODO: nthomas this is weird, switching from 2/0 to 1/-1 notation. I should be more explicit
+        # when I do this.
+        haplotypes = [[1, -1, 0, -1],
+                      [1, -1, 0, -1],
+                      [1, 1, 0, 0],
+                      [1, 1, 0, 0]]
+        haplotypes = np.array(haplotypes)
+
+        incomplete_haplotypes = get_incomplete_phasing_matrix(genotypes)
+
+        self.assertEqual(tuple(incomplete_haplotypes[0]), tuple(haplotypes[0]))
+        self.assertEqual(tuple(incomplete_haplotypes[1]), tuple(haplotypes[1]))
+        self.assertEqual(tuple(incomplete_haplotypes[2]), tuple(haplotypes[2]))
+        self.assertEqual(tuple(incomplete_haplotypes[3]), tuple(haplotypes[3]))
