@@ -13,6 +13,10 @@ class TestNucNormMin(unittest.TestCase):
         Tests that rank is indeed minimized as expected when completing a matrix with 0s
 
         Assumes that the output is rounded appropriately
+
+        # TODO nthomas I'm not sure how to properly write this test yet. Maybe it doesn't need to exist.
+        # Or maybe it can just test trivial things like the size of the resulting matrix and values inside (ie constraints)
+        # ... but that's really just testing cvxpy
         """
         m = [[0, 1],
              [0, 1],

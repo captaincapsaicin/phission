@@ -22,15 +22,16 @@ def nuclear_norm_solve(A, mask, mu):
         matrix with entries zero (if missing) or one (if present)
     mu : float
         hyper-parameter controlling trade-off between nuclear norm and square loss
-        Returns:
+
+    Returns:
     --------
     X: m x n array
-    completed matrix
+        completed matrix
     """
     X = Variable(*A.shape)
     objective = Minimize(norm(X, "nuc") +
                          mu * sum_squares(mul_elemwise(mask, X - A)))
-    constraints = get_sum_to_0_constraints(A, X)
+    constraints = get_sum_to_0_constraints(A, X)  # TODO nthomas: maybe this should be an argument to the fn
     problem = Problem(objective, constraints)
     problem.solve(solver=SCS)
     return X.value
@@ -52,7 +53,7 @@ def get_sum_to_0_constraints(A, X):
 
 def get_mask(A):
     """
-    Gets non homozygous elements from haplotype matrix A
+    Gets a mask indicating non-homozygous elements from haplotype matrix A
     """
     return A != 0
 
