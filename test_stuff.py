@@ -24,8 +24,8 @@ class TestStuff(unittest.TestCase):
              [0, 1, 1, 1, 0, 1],
              [-1, 1, 1, 1, 1, 1],
              [-1, 1, 1, 1, 1, 1],
-             [1, 1, -1, 1, 1, 1],
-             [1, 1, 1, 1, 1, 1],
+             [1, 0, -1, 1, 1, 1],
+             [1, 0, 1, 1, 1, 1],
              [1, 1, 1, 1, -1, 1],
              [1, 1, 1, 1, -1, 1]]
         m = np.array(m)
@@ -41,8 +41,9 @@ class TestStuff(unittest.TestCase):
 
         # nothing should be 0
         self.assertTrue((1 - (m_complete == 0)).all())
-        # phased positions should sum to 0
+        # symmetry-broken positions should sum to 0
         self.assertEqual(m_complete[0, 0] + m_complete[1, 0], 0)
+        self.assertEqual(m_complete[4, 1] + m_complete[5, 1], 0)
 
     def test_unmasked_even_indexes(self):
         """
