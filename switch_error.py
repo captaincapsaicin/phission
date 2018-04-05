@@ -13,24 +13,25 @@ def switch_error(observed, expected):
     switch_errors = 0
     used_free_pass = set()
     for j in range(observed.shape[1]):
+        # which individual are we looking at (index = 0 ... n/2)
         for index in range(len(expected_i)):
             o_i = observed_i[index]
             e_i = expected_i[index]
             if observed[o_i, j] != expected[e_i, j]:
                 # if we're wrong, we need to switch
-                # but we give everyone one free pass
-                if o_i in used_free_pass:
-                    switch_errors += 1
-                # we know the first time this occurs,
-                # it will be with an even individual index
-                used_free_pass.add(o_i)
-                used_free_pass.add(o_i + 1)
-                # follow along the other phased haplotype
                 # switch between odd and even, e.g. 0 <-> 1, 24 <-> 25
                 observed_i[index] = (o_i // 2) * 2 + 1 - o_i % 2
+                # but we give everyone one free pass
+                if o_i not in used_free_pass:
+                    # we know the first time this occurs,
+                    # it will be with an even individual index
+                    used_free_pass.add(o_i)
+                    used_free_pass.add(o_i + 1)
+                else:
+                    switch_errors += 1
             # we also revoke your free pass if you've passed your first heterozygous site
             # again which will only occur while o_i is still even
-            if observed[o_i, j] != observed[o_i + 1, j]:
+            if o_i not in used_free_pass and observed[o_i, j] != observed[o_i + 1, j]:
                 used_free_pass.add(o_i)
                 used_free_pass.add(o_i + 1)
 

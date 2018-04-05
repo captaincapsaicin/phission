@@ -75,7 +75,6 @@ class TestStuff(unittest.TestCase):
                     [1, 1, -1, 1],
                     [1, 1, 1, -1],
                     [1, 1, -1, 1]]
-
         observed = np.array(observed)
 
         expected = [[1, 1, 1, 1],
@@ -85,6 +84,42 @@ class TestStuff(unittest.TestCase):
         expected = np.array(expected)
 
         self.assertEqual(switch_error(observed, expected), 2)
+
+    def test_switch_error_2(self):
+        """
+        Test switch error function
+        """
+        observed = [[1, 1, 1, -1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, -1],
+                    [1, 1, 1, 1]]
+        observed = np.array(observed)
+
+        expected = [[1, 1, 1, 1],
+                    [1, 1, 1, -1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, -1]]
+        expected = np.array(expected)
+
+        self.assertEqual(switch_error(observed, expected), 0)
+
+    def test_switch_error_3(self):
+        """
+        Test switch error function
+        """
+        observed = [[1, 1, -1, -1],
+                    [1, -1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, -1, -1, -1]]
+        observed = np.array(observed)
+
+        expected = [[1, -1, 1, 1],
+                    [1, 1, -1, -1],
+                    [1, -1, -1, 1],
+                    [1, 1, 1, -1]]
+        expected = np.array(expected)
+
+        self.assertEqual(switch_error(observed, expected), 1)
 
     def test_compress_to_genotypes(self):
         haplotypes = [[1, 0, 1, 0],
