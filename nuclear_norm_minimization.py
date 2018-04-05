@@ -2,21 +2,22 @@ from cvxpy import Minimize, Problem, Variable, SCS, mul_elemwise, norm, sum_squa
 import numpy as np
 
 
-def phase(A, mu=1):
+def phase(unphased, mu=1):
     """
     Matrix completion with phasing
     """
-    mask = get_mask(A)
-    X = nuclear_norm_solve(A, mask, mu)
+    # import pdb; pdb.set_trace()
+    mask = get_mask(unphased)
+    X = nuclear_norm_solve(unphased, mask, mu)
     # round to the nearest integer
     return np.matrix.round(X)
 
 
-def nuclear_norm_solve(A, mask, mu):
+def nuclear_norm_solve(unphased, mask, mu):
     """
     Parameters:
     -----------
-    A : m x n array
+    unphased : m x n array
         matrix we want to complete
     mask : m x n array
         matrix with entries zero (if missing) or one (if present)
@@ -28,26 +29,45 @@ def nuclear_norm_solve(A, mask, mu):
     X: m x n array
         completed matrix
     """
-    X = Variable(*A.shape)
+    X = Variable(*unphased.shape)
     objective = Minimize(norm(X, "nuc") +
-                         mu * sum_squares(mul_elemwise(mask, X - A)))
-    constraints = get_sum_to_0_constraints(A, X)  # TODO nthomas: maybe this should be an argument to the fn
+                         mu * sum_squares(mul_elemwise(mask, X - unphased)))
+    constraints = get_sum_to_0_constraints(unphased, X)  # TODO nthomas: maybe this should be an argument to the fn
+    constraints += get_symmetry_breaking_constraints(unphased, X)
     problem = Problem(objective, constraints)
     problem.solve(solver=SCS)
     return X.value
 
 
-def get_sum_to_0_constraints(A, X):
+def get_symmetry_breaking_constraints(unphased, X):
     """
     A is our starting matrix, it has 0s in the spot we need to phase
-    X is our variable that we're solving for.
+    X is our cvxpy variable that we're solving for.
+
+    We want the first set of indexes for every 0/0 unphased pair for each individual
+    """
+    constraints = []
+    indexes = get_unmasked_even_indexes(unphased)
+    seen_individuals = set()
+    for i, j in indexes:
+        if i not in seen_individuals:
+            constraints.append(X[i, j] == 1)
+            constraints.append(X[i + 1, j] == -1)
+            seen_individuals.add(i)
+    return constraints
+
+
+def get_sum_to_0_constraints(unphased, X):
+    """
+    A is our starting matrix, it has 0s in the spot we need to phase
+    X is our cvxpy variable that we're solving for.
 
     We need each pair of phased haplotypes to sum to 0 (i.e. one is -1 and the other is 1)
     """
     constraints = []
-    indexes = get_unmasked_even_indexes(A)
-    for i, j in enumerate(indexes):
-        constraints.append(X[i, j] + X[i + 1, j] == 0)
+    indexes = get_unmasked_even_indexes(unphased)
+    for i, j in indexes:
+        constraints.append((X[i, j] + X[i + 1, j]) == 0)
     return constraints
 
 
