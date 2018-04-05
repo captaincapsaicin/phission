@@ -20,35 +20,35 @@ class TestStuff(unittest.TestCase):
         # Or maybe it can just test trivial things like the size of the resulting matrix and values inside (ie constraints)
         # ... but that's really just testing cvxpy
         """
-        m = [[0, 1],
-             [0, 1],
-             [1, 1],
-             [1, 1],
-             [-1, 1],
-             [-1, 1],
-             [1, 1],
-             [1, 1]]
+        m = [[0, 1, 1, 1, 0, 1],
+             [0, 1, 1, 1, 0, 1],
+             [-1, 1, 1, 1, 1, 1],
+             [-1, 1, 1, 1, 1, 1],
+             [1, 1, -1, 1, 1, 1],
+             [1, 1, 1, 1, 1, 1],
+             [1, 1, 1, 1, -1, 1],
+             [1, 1, 1, 1, -1, 1]]
         m = np.array(m)
-        # we expect rank to be minimized
-        m_complete_expected = [[-1.0, 1.0],
-                               [1.0, 1.0],
-                               [1.0, 1.0],
-                               [1.0, 1.0]]
-        m_complete_expected = np.array(m_complete_expected)
+
+        # import pdb; pdb.set_trace()
+        # # we testing bro
+        # from nuclear_norm_minimization import get_mask, nuclear_norm_solve
+        # mask = get_mask(m)
+        # X = nuclear_norm_solve(m, mask, mu=2)
+
+        # testing testing
         m_complete = phase(m, mu=2)
 
-        # for now, we just test that this function runs
-
-        # self.assertEqual(m_complete[0, 0], m_complete_expected[0, 0])
-        # self.assertEqual(m_complete[0, 1], m_complete_expected[0, 1])
-        # self.assertEqual(m_complete[1, 0], m_complete_expected[1, 0])
-        # self.assertEqual(m_complete[1, 1], m_complete_expected[1, 1])
+        # nothing should be 0
+        self.assertTrue((1 - (m_complete == 0)).all())
+        # phased positions should sum to 0
+        self.assertEqual(m_complete[0, 0] + m_complete[1, 0], 0)
 
     def test_unmasked_even_indexes(self):
         """
         Recover indexes (i, j) where we need to phase. From a haplotype matrix!
 
-        For use
+        For use in constructing sum to 0 constraints
         """
         m = [[0, 1, 0, -1],
              [0, 1, 0, -1]]
