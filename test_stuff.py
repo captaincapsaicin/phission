@@ -50,8 +50,8 @@ class TestStuff(unittest.TestCase):
 
         For use in constructing sum to 0 constraints
         """
-        m = [[0, 1, 0, -1],
-             [0, 1, 0, -1]]
+        m = [[2, 1, 2, 0],
+             [2, 1, 2, 0]]
         m = np.array(m)
 
         indexes_expected = [(0, 0), (0, 2)]
@@ -107,10 +107,10 @@ class TestStuff(unittest.TestCase):
 
         # TODO: nthomas this is weird, switching from 2/0 to 1/-1 notation. I should be more explicit
         # when I do this.
-        haplotypes = [[1, -1, 0, -1],
-                      [1, -1, 0, -1],
-                      [1, 1, 0, 0],
-                      [1, 1, 0, 0]]
+        haplotypes = [[1, 0, 2, 0],
+                      [1, 0, 2, 0],
+                      [1, 1, 2, 2],
+                      [1, 1, 2, 2]]
         haplotypes = np.array(haplotypes)
 
         incomplete_haplotypes = get_incomplete_phasing_matrix(genotypes)
