@@ -8,5 +8,11 @@ Ideas for optimization:
 To run tests:
 
 ```
-py.text
+py.test
+```
+
+If you want to put `ipdb` hooks in the code, remember to run pytest without swallowing output flag.
+
+```
+py.test -s
 ```
