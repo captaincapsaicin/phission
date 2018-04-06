@@ -8,3 +8,4 @@ numpy
 pytest
 scipy
 sklearn
+tabulate
