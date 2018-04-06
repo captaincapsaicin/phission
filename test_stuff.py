@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from nuclear_norm_minimization import get_unmasked_even_indexes, phase
+from nuclear_norm_minimization import get_unmasked_even_indexes, phase, get_mask
 from switch_error import switch_error
 
 
@@ -55,11 +55,12 @@ class TestStuff(unittest.TestCase):
              [0, 1, 0, -1]]
         m = np.array(m)
 
+        mask = get_mask(m)
         indexes_expected = [(0, 0), (0, 2)]
 
         # Counter best way to compare lists
         # https://stackoverflow.com/questions/7828867/how-to-efficiently-compare-two-unordered-lists-not-sets-in-python
-        self.assertEqual(Counter(get_unmasked_even_indexes(m)), Counter(indexes_expected))
+        self.assertEqual(Counter(get_unmasked_even_indexes(mask)), Counter(indexes_expected))
 
     def test_complete(self):
         """

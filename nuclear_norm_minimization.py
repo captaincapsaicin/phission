@@ -31,22 +31,24 @@ def nuclear_norm_solve(unphased, mask, mu):
     X = cvx.Variable(*unphased.shape)
     objective = cvx.Minimize(cvx.norm(X, "nuc") +
                              mu * cvx.sum_squares(cvx.mul_elemwise(mask, X - unphased)))
-    constraints = get_sum_to_0_constraints(unphased, X)  # TODO nthomas: maybe this should be an argument to the fn
-    constraints += get_symmetry_breaking_constraints(unphased, X)
+    constraints = get_sum_to_0_constraints(mask, X)  # TODO nthomas: maybe this should be an argument to the fn
+    constraints += get_symmetry_breaking_constraints(mask, X)
     problem = cvx.Problem(objective, constraints)
     problem.solve()
     return X.value
 
 
-def get_symmetry_breaking_constraints(unphased, X):
+def get_symmetry_breaking_constraints(mask, X):
     """
-    A is our starting matrix, it has 0s in the spot we need to phase
-    X is our cvxpy variable that we're solving for.
+    mask : m x n array
+        matrix with entries zero (if missing) or one (if present)
+    X  :
+        cvxpy variable that we're solving for.
 
-    We want the first set of indexes for every 0/0 unphased pair for each individual
+    We want the first set of indexes for every 0/0 mask pair for each individual
     """
     constraints = []
-    indexes = get_unmasked_even_indexes(unphased)
+    indexes = get_unmasked_even_indexes(mask)
     seen_individuals = set()
     for i, j in indexes:
         if i not in seen_individuals:
@@ -56,7 +58,7 @@ def get_symmetry_breaking_constraints(unphased, X):
     return constraints
 
 
-def get_sum_to_0_constraints(unphased, X):
+def get_sum_to_0_constraints(mask, X):
     """
     A is our starting matrix, it has 0s in the spot we need to phase
     X is our cvxpy variable that we're solving for.
@@ -64,7 +66,7 @@ def get_sum_to_0_constraints(unphased, X):
     We need each pair of phased haplotypes to sum to 0 (i.e. one is -1 and the other is 1)
     """
     constraints = []
-    indexes = get_unmasked_even_indexes(unphased)
+    indexes = get_unmasked_even_indexes(mask)
     for i, j in indexes:
         constraints.append((X[i, j] + X[i + 1, j]) == 0)
     return constraints
@@ -77,14 +79,14 @@ def get_mask(A):
     return A != 0
 
 
-def get_unmasked_even_indexes(A):
+def get_unmasked_even_indexes(mask):
     """
-    Takes in a matrix A of haplotypes and returns the ones where we will have
-    to do phasing (i.e. 0s)
+    mask : m x n array
+        matrix with entries zero (if missing) or one (if present)
 
     For use in setting up constraints.
     """
-    i, j = np.nonzero(1 - get_mask(A))
+    i, j = np.nonzero(1 - mask)
     new_i = []
     new_j = []
     # we're going to filter out all of the odds, since we know about those already
