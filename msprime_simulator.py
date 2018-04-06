@@ -74,4 +74,5 @@ def get_incomplete_phasing_matrix(genotypes):
     incomplete_haplotypes = np.zeros((2*n, m))
     incomplete_haplotypes[::2] = to_duplicate
     incomplete_haplotypes[1::2] = to_duplicate
+    incomplete_haplotypes = incomplete_haplotypes + 2*(incomplete_haplotypes == 0)
     return incomplete_haplotypes

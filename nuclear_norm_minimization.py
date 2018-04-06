@@ -76,7 +76,7 @@ def get_mask(A):
     """
     Gets a mask indicating non-homozygous elements from haplotype matrix A
     """
-    return A != 0
+    return A != 2
 
 
 def get_unmasked_even_indexes(mask):
