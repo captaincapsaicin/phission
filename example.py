@@ -14,7 +14,7 @@ def main():
     unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
 
     mask = get_mask(unphased_haplotypes)
-    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=0.1)
+    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=1)
     rounded = np.matrix.round(phased_haplotypes)
     # converting 0/1 representation to -1/1
     true_haplotypes = -1*(haplotypes == 0).astype(int) + 1*(haplotypes == 1).astype(int)
@@ -53,6 +53,7 @@ def main():
 if __name__ == '__main__':
     main()
 
+# TODO nthomas: add switch error
 # we can't really mess with switch error until we've set all the 0s to nonzero values
 # print(switch_error(phased_haplotypes, true_haplotypes))
 # print('switch error')
