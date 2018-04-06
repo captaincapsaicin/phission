@@ -17,7 +17,7 @@ def simulate_haplotype_matrix(sample_size,
                               length=5e3,
                               recombination_rate=2e-8,
                               mutation_rate=2e-8,
-                              random_seed=10):
+                              random_seed=None):
     """
     Returns an n individual x m SNP haplotype matrix of 0s and 1s.
 
