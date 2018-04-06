@@ -12,13 +12,11 @@ class TestStuff(unittest.TestCase):
 
     def test_phase(self):
         """
-        Tests that rank is indeed minimized as expected when completing a matrix with 0s
+        Tests that constraints are satisfied, and that no positions are 0
 
-        Assumes that the output is rounded appropriately
-
-        # TODO nthomas I'm not sure how to properly write this test yet. Maybe it doesn't need to exist.
-        # Or maybe it can just test trivial things like the size of the resulting matrix and values inside (ie constraints)
-        # ... but that's really just testing cvxpy
+        TODO nthomas:
+            positions remain 0 all of the time. This is a simple example where 1 position is indeed phased.
+            This test for now operates more like a sanity check.
         """
         m = [[0, 1, 1, 1, 0, 1],
              [0, 1, 1, 1, 0, 1],
@@ -30,13 +28,6 @@ class TestStuff(unittest.TestCase):
              [1, 1, 1, 1, -1, 1]]
         m = np.array(m)
 
-        # import pdb; pdb.set_trace()
-        # # we testing bro
-        # from nuclear_norm_minimization import get_mask, nuclear_norm_solve
-        # mask = get_mask(m)
-        # X = nuclear_norm_solve(m, mask, mu=2)
-
-        # testing testing
         m_complete = phase(m, mu=2)
 
         # nothing should be 0
