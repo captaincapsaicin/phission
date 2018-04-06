@@ -1,4 +1,4 @@
-from cvxpy import Minimize, Problem, Variable, SCS, mul_elemwise, norm, sum_squares
+import cvxpy as cvx
 import numpy as np
 
 
@@ -6,7 +6,6 @@ def phase(unphased, mu=1):
     """
     Matrix completion with phasing
     """
-    # import pdb; pdb.set_trace()
     mask = get_mask(unphased)
     X = nuclear_norm_solve(unphased, mask, mu)
     # round to the nearest integer
@@ -29,13 +28,13 @@ def nuclear_norm_solve(unphased, mask, mu):
     X: m x n array
         completed matrix
     """
-    X = Variable(*unphased.shape)
-    objective = Minimize(norm(X, "nuc") +
-                         mu * sum_squares(mul_elemwise(mask, X - unphased)))
+    X = cvx.Variable(*unphased.shape)
+    objective = cvx.Minimize(cvx.norm(X, "nuc") +
+                             mu * cvx.sum_squares(cvx.mul_elemwise(mask, X - unphased)))
     constraints = get_sum_to_0_constraints(unphased, X)  # TODO nthomas: maybe this should be an argument to the fn
     constraints += get_symmetry_breaking_constraints(unphased, X)
-    problem = Problem(objective, constraints)
-    problem.solve(solver=SCS)
+    problem = cvx.Problem(objective, constraints)
+    problem.solve()
     return X.value
 
 
