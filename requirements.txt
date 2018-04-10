@@ -2,7 +2,7 @@ cvxpy
 ipdb
 ipython
 matplotlib
-msprime
 numpy
+msprime
 pytest
 tabulate
