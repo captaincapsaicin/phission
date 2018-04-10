@@ -1,11 +1,8 @@
 cvxpy
 ipdb
 ipython
-jupyter
 matplotlib
 msprime
 numpy
 pytest
-scipy
-sklearn
 tabulate
