@@ -8,7 +8,7 @@ from nuclear_norm_minimization import get_mask, nuclear_norm_solve
 from switch_error import switch_error
 
 
-def main(num_snps):
+def main(num_snps, mu=2):
     # simulate with msprime
     all_haplotypes = simulate_haplotype_matrix(200)
     while all_haplotypes.shape[1] < num_snps:
@@ -27,7 +27,7 @@ def main(num_snps):
 
     # this is what the ".phase" method does
     mask = get_mask(unphased_haplotypes)
-    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=1)
+    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=mu)
     rounded = np.matrix.round(phased_haplotypes)
 
     # converting 0/1 representation to -1/1
@@ -66,7 +66,9 @@ def main(num_snps):
     print(row_format.format(*zeros))
 
 if __name__ == '__main__':
-    main(int(sys.argv[1]))
+    num_snps = int(sys.argv[1])
+    mu = float(sys.argv[2])
+    main(num_snps, mu)
 
 # TODO nthomas: add switch error
 # we can't really mess with switch error until we've set all the 0s to nonzero values
