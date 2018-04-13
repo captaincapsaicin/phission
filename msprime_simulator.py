@@ -66,9 +66,9 @@ def get_incomplete_phasing_matrix(genotypes):
            [0, 0, 0, ..., 0, 0, 2]], dtype=uint8)
 
     Returns:
-        a matrix with -1s and 1s in homozygous positions. 0s in unphased, heterozygous positions
+        a matrix with 0s and 1s in homozygous positions. -1s in unphased, heterozygous positions
     """
-    to_duplicate = -1*(genotypes == 0).astype(int) + 1*(genotypes == 2).astype(int)
+    to_duplicate = 0*(genotypes == 0).astype(int) + -1*(genotypes == 1).astype(int) + 1*(genotypes == 2).astype(int)
     n, m = to_duplicate.shape
 
     incomplete_haplotypes = np.zeros((2*n, m))

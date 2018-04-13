@@ -31,7 +31,7 @@ def nuclear_norm_solve(unphased, mask, mu):
     X = cvx.Variable(*unphased.shape)
     objective = cvx.Minimize(cvx.norm(X, "nuc") +
                              mu * cvx.sum_squares(cvx.mul_elemwise(mask, X - unphased)))
-    constraints = get_sum_to_0_constraints(mask, X)  # TODO nthomas: maybe this should be an argument to the fn
+    constraints = get_sum_to_1_constraints(mask, X)  # TODO nthomas: maybe this should be an argument to the fn
     constraints += get_symmetry_breaking_constraints(mask, X)
     problem = cvx.Problem(objective, constraints)
     problem.solve()
@@ -53,12 +53,12 @@ def get_symmetry_breaking_constraints(mask, X):
     for i, j in indexes:
         if i not in seen_individuals:
             constraints.append(X[i, j] == 1)
-            constraints.append(X[i + 1, j] == -1)
+            constraints.append(X[i + 1, j] == 0)
             seen_individuals.add(i)
     return constraints
 
 
-def get_sum_to_0_constraints(mask, X):
+def get_sum_to_1_constraints(mask, X):
     """
     A is our starting matrix, it has 0s in the spot we need to phase
     X is our cvxpy variable that we're solving for.
@@ -68,7 +68,7 @@ def get_sum_to_0_constraints(mask, X):
     constraints = []
     indexes = get_unmasked_even_indexes(mask)
     for i, j in indexes:
-        constraints.append((X[i, j] + X[i + 1, j]) == 0)
+        constraints.append((X[i, j] + X[i + 1, j]) == 1)
     return constraints
 
 
@@ -76,7 +76,7 @@ def get_mask(A):
     """
     Gets a mask indicating non-homozygous elements from haplotype matrix A
     """
-    return A != 0
+    return A != -1
 
 
 def get_unmasked_even_indexes(mask):
