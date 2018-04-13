@@ -58,7 +58,10 @@ def main(num_snps, mu, num_ref):
     print(row_format.format(*zeros))
 
     print('switch error')
-    print(switch_error(phased_haplotypes, true_with_ref))
+    print(switch_error(rounded, true_with_ref))
+    print('percent switch error')
+    num_phased = (np.sum(unphased_haplotypes == -1)) / 2
+    print(switch_error(rounded, true_with_ref) / num_phased)
 
 
 if __name__ == '__main__':

@@ -109,6 +109,28 @@ class TestStuff(unittest.TestCase):
 
         self.assertEqual(switch_error(observed, expected), 1)
 
+    def test_switch_error_4(self):
+        """
+        Test switch error function
+        """
+        observed = [[1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1]]
+        observed = np.array(observed)
+
+        expected = [[1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1],
+                    [1, 1, 1, 1]]
+        expected = np.array(expected)
+
+        self.assertEqual(switch_error(observed, expected), 0)
+
     def test_compress_to_genotypes(self):
         haplotypes = [[1, 0, 1, 0],
                       [1, 0, 0, 0],
