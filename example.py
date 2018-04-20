@@ -8,11 +8,11 @@ from nuclear_norm_minimization import get_mask, nuclear_norm_solve
 from switch_error import switch_error
 
 
-def main(num_snps, mu, num_ref):
+def main(num_haps, num_snps, mu, num_ref):
     # simulate with msprime
-    all_haplotypes = simulate_haplotype_matrix(100)
+    all_haplotypes = simulate_haplotype_matrix(num_haps)
     while all_haplotypes.shape[1] < num_snps:
-        all_haplotypes = simulate_haplotype_matrix(100)
+        all_haplotypes = simulate_haplotype_matrix(num_haps)
     true_haplotypes = all_haplotypes[:, 0:num_snps]
 
     print('haplotype dimension')
@@ -65,9 +65,10 @@ def main(num_snps, mu, num_ref):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phase!')
+    parser.add_argument('--num-haps', type=int, help='number of haplotypes to simulate (2*individuals)')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
-    parser.add_argument('--mu', type=int, help='factor that trades off between accuracy and minimum rank')
-    parser.add_argument('--num-ref', type=int, help='number of true reference haplotypes to append')
+    parser.add_argument('--mu', type=int, default=1, help='factor that trades off between accuracy and minimum rank')
+    parser.add_argument('--num-ref', type=int, default=0, help='number of true reference haplotypes to append')
 
     args = parser.parse_args()
-    main(args.num_snps, args.mu, args.num_ref)
+    main(args.num_haps, args.num_snps, args.mu, args.num_ref)

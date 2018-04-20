@@ -22,13 +22,18 @@ py.test -s
 ## Running the example
 
 ```
-python example.py --num-snps 60 --mu 4 --num-ref 0
+python example.py --num-haps 100 --num-snps 60
 ```
 
 ## To run beagle:
 
-Make sure you have the beagle jar
+Make sure you have the beagle jar in your working directory
 
 ```
 wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
+```
+
+Then run the script
+```
+python run_beagle.py --num-haps 100 --num-snps 60
 ```
