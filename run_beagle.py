@@ -3,6 +3,8 @@ import os
 import subprocess
 
 import msprime
+import numpy as np
+from tabulate import tabulate
 
 from switch_error import switch_error
 from utils import read_haplotype_matrix_from_vcf
@@ -72,6 +74,12 @@ def main(num_haps, num_snps, verbose=False, seed=None):
     print('haplotype dimension')
     true_haplotypes = true_haplotypes[:, 0:num_snps]
     print(true_haplotypes.shape)
+
+    headers = ['nuclear norm', 'rank', 'normalized frob distance']
+    data = [['true', np.linalg.norm(true_haplotypes, 'nuc'), np.linalg.matrix_rank(true_haplotypes), 0],
+            ['beagle phased', np.linalg.norm(phased_haplotypes, 'nuc'), np.linalg.matrix_rank(phased_haplotypes), np.linalg.norm(phased_haplotypes - true_haplotypes)/np.linalg.norm(true_haplotypes)]]
+    print(tabulate(data, headers=headers))
+
     print('switch error')
     print(switch_error(phased_haplotypes, true_haplotypes))
     return true_haplotypes, phased_haplotypes
