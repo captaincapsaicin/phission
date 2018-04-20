@@ -6,13 +6,17 @@ import msprime
 from switch_error import switch_error
 from utils import read_haplotype_matrix_from_vcf
 
-input_vcf = 'input.vcf'
-output_file = 'beagle_output'
+input_vcf = 'beagle/input.vcf'
+output_file = 'beagle/beagle_output'
 
 beagle_path = 'beagle.27Jan18.7e1.jar'
 
 
 def cleanup():
+    """
+    Cleanup files so we don't have to do any overrite (especially beagle)
+    May want to remove the cleanup step for debugging
+    """
     os.remove(input_vcf)
     os.remove(output_file + '.vcf')
 
@@ -50,5 +54,10 @@ def main(verbose=False, seed=None):
     return true_haplotypes, phased_haplotypes
 
 if __name__ == '__main__':
+    # make sure there is a place for beagle output
+    try:
+        os.mkdir('beagle')
+    except FileExistsError:
+        pass
     main()
     cleanup()
