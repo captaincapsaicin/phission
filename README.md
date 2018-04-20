@@ -1,3 +1,5 @@
+# PHAT MAN
+
 This repo does genotype phasing (conversion from genotype to haplotype) using a convex relaxation of the problem.
 
 We formulate phasing as a matrix completion problem with constraints. We do matrix completion on overlapping windows, trying to minimize the nuclear norm, a convex proxy for rank, in the process.
@@ -5,7 +7,7 @@ We formulate phasing as a matrix completion problem with constraints. We do matr
 Ideas for optimization:
 - Optimize each of the windows separately using ADMM
 
-To run tests:
+## To run tests:
 
 ```
 py.test
@@ -17,7 +19,13 @@ If you want to put `ipdb` hooks in the code, remember to run pytest without swal
 py.test -s
 ```
 
-# To run beagle:
+## Running the example
+
+```
+python example.py --num-snps 60 --mu 4 --num-ref 0
+```
+
+## To run beagle:
 
 Make sure you have the beagle jar
 
