@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 import numpy as np
 from tabulate import tabulate
@@ -47,15 +47,14 @@ def main(num_snps, mu, num_ref):
             ['rounded', *np.histogram(abs(rounded), bins=bins)[0]]]
     print(tabulate(data, headers=headers))
 
-    headers = ['-1s phased', 'Nonzero set to -1s', '-1s remaining']
-    zeros = [np.sum(np.logical_and(unphased_haplotypes == -1, rounded != -1)),
-             np.sum(np.logical_and(unphased_haplotypes != -1, rounded == -1)),
-             np.sum(rounded == -1)]
+    headers = ['Positions phased', 'Unphased remaining']
+    phased_stats = [np.sum(np.logical_and(unphased_haplotypes == -1, rounded != -1)),
+                    np.sum(rounded == -1)]
 
     row_format = '{:>20}' * (len(headers))
     print('\n')
     print(row_format.format(*headers))
-    print(row_format.format(*zeros))
+    print(row_format.format(*phased_stats))
 
     print('switch error')
     print(switch_error(rounded, true_with_ref))
@@ -65,7 +64,10 @@ def main(num_snps, mu, num_ref):
 
 
 if __name__ == '__main__':
-    num_snps = int(sys.argv[1])
-    mu = int(sys.argv[2])
-    num_ref = int(sys.argv[3])
-    main(num_snps, mu, num_ref)
+    parser = argparse.ArgumentParser(description='Phase!')
+    parser.add_argument('--num-snps', type=int, help='number of snps to include')
+    parser.add_argument('--mu', type=int, help='factor that trades off between accuracy and minimum rank')
+    parser.add_argument('--num-ref', type=int, help='number of true reference haplotypes to append')
+
+    args = parser.parse_args()
+    main(args.num_snps, args.mu, args.num_ref)

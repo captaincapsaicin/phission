@@ -16,3 +16,9 @@ If you want to put `ipdb` hooks in the code, remember to run pytest without swal
 ```
 py.test -s
 ```
+
+# Running the example
+
+```
+python example.py --num-snps 60 --mu 4 --num-ref 0
+```
