@@ -28,7 +28,7 @@ def main(num_snps, mu, num_ref):
 
     # this is what the ".phase" method does
     mask = get_mask(unphased_haplotypes)
-    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=1)
+    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=mu)
     rounded = np.matrix.round(phased_haplotypes).astype(int)
 
     headers = ['nuclear norm', 'rank', 'normalized frob distance']
