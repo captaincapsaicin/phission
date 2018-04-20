@@ -16,3 +16,11 @@ If you want to put `ipdb` hooks in the code, remember to run pytest without swal
 ```
 py.test -s
 ```
+
+# To run beagle:
+
+Make sure you have the beagle jar
+
+```
+wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
+```

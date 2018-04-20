@@ -1,0 +1,10 @@
+##fileformat=VCFv4.2
+##source=msprime 0.5.0
+##FILTER=<ID=PASS,Description="All filters passed">
+##contig=<ID=1,length=5000>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	msp_0	msp_1	msp_2	msp_3
+1	2	.	A	T	.	PASS	.	GT	0|0	0|0	0|0	0|0
+1	55	.	A	T	.	PASS	.	GT	0|0	0|0	1|0	1|0
+1	71	.	A	T	.	PASS	.	GT	0|0	0|1	0|0	0|0
+1	211	.	A	T	.	PASS	.	GT	0|0	0|0	0|0	0|0

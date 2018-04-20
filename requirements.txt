@@ -6,6 +6,8 @@ matplotlib
 msprime
 numpy
 pytest
+pyvcf
+scikit-allel
 scipy
 sklearn
 tabulate

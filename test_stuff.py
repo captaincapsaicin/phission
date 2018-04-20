@@ -6,6 +6,7 @@ import numpy as np
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from nuclear_norm_minimization import get_unmasked_even_indexes, phase, get_mask
 from switch_error import switch_error
+from utils import read_haplotype_matrix_from_vcf
 
 
 class TestStuff(unittest.TestCase):
@@ -147,3 +148,25 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(tuple(incomplete_haplotypes[1]), tuple(haplotypes[1]))
         self.assertEqual(tuple(incomplete_haplotypes[2]), tuple(haplotypes[2]))
         self.assertEqual(tuple(incomplete_haplotypes[3]), tuple(haplotypes[3]))
+
+    def test_haplotype_matrix_from_vcf(self):
+        """
+        Test that reading from vcf you get back individual by SNP matrix
+        """
+        haplotypes = [[0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0]]
+        haplotypes = np.array(haplotypes)
+
+        filepath = 'fixtures/test.vcf'
+        read_haplotypes = read_haplotype_matrix_from_vcf(filepath)
+
+        self.assertEqual(tuple(read_haplotypes[0]), tuple(haplotypes[0]))
+        self.assertEqual(tuple(read_haplotypes[1]), tuple(haplotypes[1]))
+        self.assertEqual(tuple(read_haplotypes[2]), tuple(haplotypes[2]))
+        self.assertEqual(tuple(read_haplotypes[3]), tuple(haplotypes[3]))
