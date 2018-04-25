@@ -78,7 +78,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phase!')
     parser.add_argument('--num-haps', type=int, help='number of haplotypes to simulate (2*individuals)')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
-    parser.add_argument('--mu', type=float, default=1.0, help='factor that trades off between accuracy and minimum rank')
     parser.add_argument('--num-ref', type=int, default=0, help='number of true reference haplotypes to append')
     parser.add_argument('--Ne', type=float, default=1e5, help='effective population size (msprime parameter)')
     parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')

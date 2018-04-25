@@ -25,7 +25,7 @@ class TestStuff(unittest.TestCase):
              [1, 1, 1, 1, 0, 1]]
         m = np.array(m)
 
-        m_complete = phase(m, mu=2)
+        m_complete = phase(m)
 
         # nothing should be -1 (i.e. unphased)
         self.assertTrue((1 - (m_complete == -1)).all())

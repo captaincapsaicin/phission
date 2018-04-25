@@ -2,17 +2,17 @@ import cvxpy as cvx
 import numpy as np
 
 
-def phase(unphased, mu=1):
+def phase(unphased):
     """
     Matrix completion with phasing
     """
     mask = get_mask(unphased)
-    X = nuclear_norm_solve(unphased, mask, mu)
+    X = nuclear_norm_solve(unphased, mask)
     # round to the nearest integer
     return np.matrix.round(X)
 
 
-def nuclear_norm_solve(unphased, mask, mu):
+def nuclear_norm_solve(unphased, mask):
     """
     Parameters:
     -----------
@@ -20,8 +20,6 @@ def nuclear_norm_solve(unphased, mask, mu):
         matrix we want to complete
     mask : m x n array
         matrix with entries zero (if missing) or one (if present)
-    mu : float
-        hyper-parameter controlling trade-off between nuclear norm and square loss
 
     Returns:
     --------
@@ -29,9 +27,10 @@ def nuclear_norm_solve(unphased, mask, mu):
         completed matrix
     """
     X = cvx.Variable(*unphased.shape)
-    objective = cvx.Minimize(cvx.norm(X, "nuc") +
-                             mu * cvx.sum_squares(cvx.mul_elemwise(mask, X - unphased)))
-    constraints = get_sum_to_1_constraints(mask, X)  # TODO nthomas: maybe this should be an argument to the fn
+    objective = cvx.Minimize(cvx.norm(X, "nuc"))
+    # equality constraints
+    constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
+    constraints += get_sum_to_1_constraints(mask, X)
     constraints += get_symmetry_breaking_constraints(mask, X)
     problem = cvx.Problem(objective, constraints)
     problem.solve()
