@@ -58,11 +58,21 @@ def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, rand
          recombination_rate=recombination_rate,
          mutation_rate=mutation_rate,
          random_seed=random_seed)
+    true_haplotypes = tree_sequence.genotype_matrix().T
+    while true_haplotypes.shape[1] < num_snps:
+        print('resimulating...')
+        tree_sequence = msprime.simulate(
+             sample_size=num_haps,
+             Ne=Ne,
+             length=length,
+             recombination_rate=recombination_rate,
+             mutation_rate=mutation_rate,
+             random_seed=random_seed)
+        true_haplotypes = tree_sequence.genotype_matrix().T
 
     with open(input_vcf, 'w') as f:
         tree_sequence.write_vcf(f, ploidy=2)
 
-    true_haplotypes = tree_sequence.genotype_matrix().T
     num_simulated_snps = true_haplotypes.shape[1]
     num_snps_to_remove = num_simulated_snps - num_snps
 

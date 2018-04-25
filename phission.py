@@ -18,6 +18,7 @@ def main(num_haps, num_snps, num_ref, Ne, length, recombination_rate, mutation_r
                                                mutation_rate=mutation_rate,
                                                random_seed=random_seed)
     while all_haplotypes.shape[1] < num_snps:
+        print('resimulating...')
         all_haplotypes = simulate_haplotype_matrix(num_haps,
                                                    Ne=Ne,
                                                    length=length,
