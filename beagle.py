@@ -119,15 +119,18 @@ if __name__ == '__main__':
         pass
 
     args = parser.parse_args()
-    main(args.num_haps,
-         args.num_snps,
-         args.Ne,
-         args.length,
-         args.recombination_rate,
-         args.mutation_rate,
-         args.seed)
+    try:
+        main(args.num_haps,
+             args.num_snps,
+             args.Ne,
+             args.length,
+             args.recombination_rate,
+             args.mutation_rate,
+             args.seed)
+    except Exception as e:
+        raise e
+    finally:
+        cleanup()
 
     print('time elapsed:')
     print(time.time() - start_time)
-
-    cleanup()
