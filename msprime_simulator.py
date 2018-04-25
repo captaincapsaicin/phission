@@ -2,20 +2,10 @@ import msprime
 import numpy as np
 
 
-# an example msprime usage
-# tree_sequence = msprime.simulate(
-#      sample_size=100,
-#      Ne=1e5,
-#      length=5e3,
-#      recombination_rate=2e-8,
-#      mutation_rate=2e-8,
-#      random_seed=10)
-
-
 def simulate_haplotype_matrix(sample_size,
-                              Ne=1e5,
+                              Ne=1e4,
                               length=5e3,
-                              recombination_rate=2e-8,
+                              recombination_rate=0,
                               mutation_rate=2e-8,
                               random_seed=None):
     """

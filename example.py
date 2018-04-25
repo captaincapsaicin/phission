@@ -8,11 +8,21 @@ from nuclear_norm_minimization import get_mask, nuclear_norm_solve
 from switch_error import switch_error
 
 
-def main(num_haps, num_snps, mu, num_ref):
+def main(num_haps, num_snps, mu, num_ref, Ne, length, recombination_rate, mutation_rate, random_seed):
     # simulate with msprime
-    all_haplotypes = simulate_haplotype_matrix(num_haps)
+    all_haplotypes = simulate_haplotype_matrix(num_haps,
+                                               Ne=Ne,
+                                               length=length,
+                                               recombination_rate=recombination_rate,
+                                               mutation_rate=mutation_rate,
+                                               random_seed=random_seed)
     while all_haplotypes.shape[1] < num_snps:
-        all_haplotypes = simulate_haplotype_matrix(num_haps)
+        all_haplotypes = simulate_haplotype_matrix(num_haps,
+                                                   Ne=Ne,
+                                                   length=length,
+                                                   recombination_rate=recombination_rate,
+                                                   mutation_rate=mutation_rate,
+                                                   random_seed=random_seed)
     true_haplotypes = all_haplotypes[:, 0:num_snps]
 
     print('haplotype dimension')
@@ -38,14 +48,15 @@ def main(num_haps, num_snps, mu, num_ref):
             ['rounded', np.linalg.norm(rounded, 'nuc'), np.linalg.matrix_rank(rounded), np.linalg.norm(rounded - true_with_ref)/np.linalg.norm(true_with_ref)]]
     print(tabulate(data, headers=headers))
 
+    # currently deprecated output
     # histogram of absolute values
-    bins = np.array([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2])
-    headers = bins[1:]
-    data = [['true', *np.histogram(abs(true_with_ref), bins=bins)[0]],
-            ['unphased', *np.histogram(abs(unphased_haplotypes), bins=bins)[0]],
-            ['phased', *np.histogram(abs(phased_haplotypes), bins=bins)[0]],
-            ['rounded', *np.histogram(abs(rounded), bins=bins)[0]]]
-    print(tabulate(data, headers=headers))
+    # bins = np.array([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2])
+    # headers = bins[1:]
+    # data = [['true', *np.histogram(abs(true_with_ref), bins=bins)[0]],
+    #         ['unphased', *np.histogram(abs(unphased_haplotypes), bins=bins)[0]],
+    #         ['phased', *np.histogram(abs(phased_haplotypes), bins=bins)[0]],
+    #         ['rounded', *np.histogram(abs(rounded), bins=bins)[0]]]
+    # print(tabulate(data, headers=headers))
 
     headers = ['Positions phased', 'Unphased remaining']
     phased_stats = [np.sum(np.logical_and(unphased_haplotypes == -1, rounded != -1)),
@@ -67,8 +78,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phase!')
     parser.add_argument('--num-haps', type=int, help='number of haplotypes to simulate (2*individuals)')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
-    parser.add_argument('--mu', type=int, default=1, help='factor that trades off between accuracy and minimum rank')
+    parser.add_argument('--mu', type=float, default=1.0, help='factor that trades off between accuracy and minimum rank')
     parser.add_argument('--num-ref', type=int, default=0, help='number of true reference haplotypes to append')
+    parser.add_argument('--Ne', type=float, default=1e5, help='effective population size (msprime parameter)')
+    parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
+    parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
+    parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
+    parser.add_argument('--random-seed', type=int, default=None, help='random seed (msprime parameter)')
 
     args = parser.parse_args()
-    main(args.num_haps, args.num_snps, args.mu, args.num_ref)
+    main(args.num_haps,
+         args.num_snps,
+         args.mu,
+         args.num_ref,
+         args.Ne,
+         args.length,
+         args.recombination_rate,
+         args.mutation_rate,
+         args.random_seed)

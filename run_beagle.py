@@ -48,14 +48,14 @@ def remove_n_lines(vcf_file, n, output_file):
         f.write(''.join(lines))
 
 
-def main(num_haps, num_snps, verbose=False, seed=None):
+def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, random_seed=None, verbose=False):
     tree_sequence = msprime.simulate(
          sample_size=num_haps,
-         Ne=1e5,
-         length=5e3,
-         recombination_rate=2e-8,
-         mutation_rate=2e-8,
-         random_seed=seed)
+         Ne=Ne,
+         length=length,
+         recombination_rate=recombination_rate,
+         mutation_rate=mutation_rate,
+         random_seed=random_seed)
 
     with open(input_vcf, 'w') as f:
         tree_sequence.write_vcf(f, ploidy=2)
@@ -86,8 +86,14 @@ def main(num_haps, num_snps, verbose=False, seed=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phase!')
-    parser.add_argument('--num-haps', type=int, default=100, help='number of haplotypes to simulate (2*individuals)')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
+    parser.add_argument('--num-haps', type=int, default=100, help='number of haplotypes to simulate (2*individuals) (msprime parameter)')
+    parser.add_argument('--Ne', type=float, default=1e5, help='effective population size (msprime parameter)')
+    parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
+    parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
+    parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
+    parser.add_argument('--random-seed', type=int, default=None, help='random seed (msprime parameter)')
+
 
     args = parser.parse_args()
 
@@ -97,5 +103,11 @@ if __name__ == '__main__':
     except FileExistsError:
         pass
 
-    main(args.num_haps, args.num_snps)
+    main(args.num_haps,
+         args.num_snps,
+         args.Ne,
+         args.length,
+         args.recombination_rate,
+         args.mutation_rate,
+         args.random_seed)
     cleanup()

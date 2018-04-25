@@ -1,4 +1,4 @@
-# PHAT MAN
+# phission
 
 This repo does genotype phasing (conversion from genotype to haplotype) using a convex relaxation of the problem.
 
@@ -36,4 +36,17 @@ wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
 Then run the script
 ```
 python run_beagle.py --num-haps 100 --num-snps 60
+```
+
+## A note on installation:
+
+You may have to install numpy first (msprime installation depends on it)
+```
+pip install numpy --no-cache-dir
+pip install msprime --no-cache-dir
+```
+
+Then install the reset of the dependencies
+```
+pip install -r requirements.txt
 ```
