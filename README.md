@@ -1,31 +1,53 @@
 # phission
 
-This repo does genotype phasing (conversion from genotype to haplotype) using a convex relaxation of the problem.
+*phission:* **ph**asing via nuclear "f**ission**"
 
-We formulate phasing as a matrix completion problem with constraints. We do matrix completion on overlapping windows, trying to minimize the nuclear norm, a convex proxy for rank, in the process.
+This package implements [haplotype phasing](https://en.wikipedia.org/wiki/Haplotype_estimation) by formulating it as a low-rank matrix completion problem. `phission` uses minimum nuclear norm as a convex relaxation of low-rank.
 
-Ideas for optimization:
-- Optimize each of the windows separately using ADMM
+## Installation
 
-## To run tests:
-
-```
-py.test
-```
-
-If you want to put `ipdb` hooks in the code, remember to run pytest without swallowing output flag.
+Clone this repo
 
 ```
-py.test -s
+git clone git@github.com:captaincapsaicin/phission.git
+```
+
+From the project root, create a [virtual environment](https://virtualenv.pypa.io/en/stable/) using `virtualenv`
+
+```
+cd phission
+virtualenv venv
+```
+
+Activate the virtual environment
+```
+source venv/bin/activate
+```
+
+Install `numpy` before `msprime` (msprime installation depends on it)
+```
+pip install numpy --no-cache-dir
+pip install msprime --no-cache-dir
+```
+
+Then install the reset of the dependencies
+```
+pip install -r requirements.txt
 ```
 
 ## Running the example
 
 ```
-python phission.py --num-haps 100 --num-snps 60
+python phission.py --num-haps 100 --num-snps 60 --seed 1
 ```
 
-## To run beagle:
+For help with command line options, run:
+
+```
+python phission.py -h
+```
+
+## Running beagle for comparison
 
 Make sure you have the beagle jar in your working directory
 
@@ -35,18 +57,25 @@ wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
 
 Then run the script
 ```
-python beagle.py --num-haps 100 --num-snps 60
+python beagle.py --num-haps 100 --num-snps 60 --seed 1
 ```
 
-## A note on installation:
+## Running tests
 
-You may have to install numpy first (msprime installation depends on it)
 ```
-pip install numpy --no-cache-dir
-pip install msprime --no-cache-dir
+py.test
 ```
 
-Then install the reset of the dependencies
+## Future work
+
+Parallelize optimization using ADMM, performing phasing over overlapping windows, and then sensibly combining their results.
+
+## Advanced Notes
+
+`phission` is compatible with Python 2 and 3.
+
+If you want to put `ipdb` hooks in the code, remember to run `pytest` without swallowing output flag.
+
 ```
-pip install -r requirements.txt
+py.test -s
 ```
