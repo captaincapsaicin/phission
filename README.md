@@ -22,7 +22,7 @@ py.test -s
 ## Running the example
 
 ```
-python example.py --num-haps 100 --num-snps 60
+python phission.py --num-haps 100 --num-snps 60
 ```
 
 ## To run beagle:
@@ -35,7 +35,7 @@ wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
 
 Then run the script
 ```
-python run_beagle.py --num-haps 100 --num-snps 60
+python beagle.py --num-haps 100 --num-snps 60
 ```
 
 ## A note on installation:
