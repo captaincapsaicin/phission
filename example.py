@@ -1,10 +1,11 @@
 import argparse
+import time
 
 import numpy as np
 from tabulate import tabulate
 
 from msprime_simulator import simulate_haplotype_matrix, compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from nuclear_norm_minimization import get_mask, nuclear_norm_solve
+from nuclear_norm_minimization import phase
 from switch_error import switch_error
 
 
@@ -23,9 +24,9 @@ def main(num_haps, num_snps, num_ref, Ne, length, recombination_rate, mutation_r
                                                    recombination_rate=recombination_rate,
                                                    mutation_rate=mutation_rate,
                                                    random_seed=random_seed)
-    true_haplotypes = all_haplotypes[:, 0:num_snps]
 
     print('haplotype dimension')
+    true_haplotypes = all_haplotypes[:, 0:num_snps]
     print(true_haplotypes.shape)
 
     genotypes = compress_to_genotype_matrix(true_haplotypes)
@@ -36,45 +37,29 @@ def main(num_haps, num_snps, num_ref, Ne, length, recombination_rate, mutation_r
     true_with_ref = np.vstack([true_haplotypes, true_haplotypes[0:num_ref]])
     print('unphased dimension {}'.format(unphased_haplotypes.shape))
 
-    # this is what the ".phase" method does
-    mask = get_mask(unphased_haplotypes)
-    phased_haplotypes = nuclear_norm_solve(unphased_haplotypes, mask, mu=mu)
-    rounded = np.matrix.round(phased_haplotypes).astype(int)
+    phased_haplotypes = phase(unphased_haplotypes)
 
     headers = ['nuclear norm', 'rank', 'normalized frob distance']
     data = [['true', np.linalg.norm(true_with_ref, 'nuc'), np.linalg.matrix_rank(true_with_ref), np.linalg.norm(true_with_ref - true_with_ref)/np.linalg.norm(true_with_ref)],
             ['unphased', np.linalg.norm(unphased_haplotypes, 'nuc'), np.linalg.matrix_rank(unphased_haplotypes), np.linalg.norm(unphased_haplotypes - true_with_ref)/np.linalg.norm(true_with_ref)],
-            ['phased', np.linalg.norm(phased_haplotypes, 'nuc'), np.linalg.matrix_rank(phased_haplotypes), np.linalg.norm(phased_haplotypes - true_with_ref)/np.linalg.norm(true_with_ref)],
-            ['rounded', np.linalg.norm(rounded, 'nuc'), np.linalg.matrix_rank(rounded), np.linalg.norm(rounded - true_with_ref)/np.linalg.norm(true_with_ref)]]
+            ['phased', np.linalg.norm(phased_haplotypes, 'nuc'), np.linalg.matrix_rank(phased_haplotypes), np.linalg.norm(phased_haplotypes - true_with_ref)/np.linalg.norm(true_with_ref)]]
     print(tabulate(data, headers=headers))
 
-    # currently deprecated output
-    # histogram of absolute values
-    # bins = np.array([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2])
-    # headers = bins[1:]
-    # data = [['true', *np.histogram(abs(true_with_ref), bins=bins)[0]],
-    #         ['unphased', *np.histogram(abs(unphased_haplotypes), bins=bins)[0]],
-    #         ['phased', *np.histogram(abs(phased_haplotypes), bins=bins)[0]],
-    #         ['rounded', *np.histogram(abs(rounded), bins=bins)[0]]]
-    # print(tabulate(data, headers=headers))
-
-    headers = ['Positions phased', 'Unphased remaining']
-    phased_stats = [np.sum(np.logical_and(unphased_haplotypes == -1, rounded != -1)),
-                    np.sum(rounded == -1)]
-
-    row_format = '{:>20}' * (len(headers))
-    print('\n')
-    print(row_format.format(*headers))
-    print(row_format.format(*phased_stats))
+    num_phased = np.sum(np.logical_and(unphased_haplotypes == -1, phased_haplotypes != -1))
+    print('Positions phased:')
+    print(num_phased)
 
     print('switch error')
-    print(switch_error(rounded, true_with_ref))
+    print(switch_error(phased_haplotypes, true_with_ref))
     print('percent switch error')
     num_phased = (np.sum(unphased_haplotypes == -1)) / 2
-    print(switch_error(rounded, true_with_ref) / num_phased)
+    print(switch_error(phased_haplotypes, true_with_ref) / num_phased)
 
+    return true_haplotypes, phased_haplotypes
 
 if __name__ == '__main__':
+    start_time = time.time()
+
     parser = argparse.ArgumentParser(description='Phase!')
     parser.add_argument('--num-haps', type=int, help='number of haplotypes to simulate (2*individuals)')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
@@ -83,7 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
-    parser.add_argument('--random-seed', type=int, default=None, help='random seed (msprime parameter)')
+    parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
 
     args = parser.parse_args()
     main(args.num_haps,
@@ -93,4 +78,7 @@ if __name__ == '__main__':
          args.length,
          args.recombination_rate,
          args.mutation_rate,
-         args.random_seed)
+         args.seed)
+
+    print('time elapsed:')
+    print(time.time() - start_time)

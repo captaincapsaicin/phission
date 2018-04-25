@@ -1,11 +1,13 @@
 import argparse
 import os
 import subprocess
+import time
 
 import msprime
 import numpy as np
 from tabulate import tabulate
 
+from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from switch_error import switch_error
 from utils import read_haplotype_matrix_from_vcf
 
@@ -75,16 +77,32 @@ def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, rand
     true_haplotypes = true_haplotypes[:, 0:num_snps]
     print(true_haplotypes.shape)
 
+    # constructed for statistics later, not used by beagle, which works directly on vcf
+    genotypes = compress_to_genotype_matrix(true_haplotypes)
+    unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
+
+    # TODO nthomas: add some facility to contribute reference haplotypes to beagle
+
     headers = ['nuclear norm', 'rank', 'normalized frob distance']
     data = [['true', np.linalg.norm(true_haplotypes, 'nuc'), np.linalg.matrix_rank(true_haplotypes), 0],
             ['beagle phased', np.linalg.norm(phased_haplotypes, 'nuc'), np.linalg.matrix_rank(phased_haplotypes), np.linalg.norm(phased_haplotypes - true_haplotypes)/np.linalg.norm(true_haplotypes)]]
     print(tabulate(data, headers=headers))
 
+    num_phased = np.sum(np.logical_and(unphased_haplotypes == -1, phased_haplotypes != -1))
+    print('Positions phased:')
+    print(num_phased)
+
     print('switch error')
     print(switch_error(phased_haplotypes, true_haplotypes))
+    print('percent switch error')
+    num_phased = (np.sum(unphased_haplotypes == -1)) / 2
+    print(switch_error(phased_haplotypes, true_haplotypes) / num_phased)
+
     return true_haplotypes, phased_haplotypes
 
 if __name__ == '__main__':
+    start_time = time.time()
+
     parser = argparse.ArgumentParser(description='Phase!')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
     parser.add_argument('--num-haps', type=int, default=100, help='number of haplotypes to simulate (2*individuals) (msprime parameter)')
@@ -92,10 +110,7 @@ if __name__ == '__main__':
     parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
-    parser.add_argument('--random-seed', type=int, default=None, help='random seed (msprime parameter)')
-
-
-    args = parser.parse_args()
+    parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
 
     # make sure there is a place for beagle output
     try:
@@ -103,11 +118,16 @@ if __name__ == '__main__':
     except FileExistsError:
         pass
 
+    args = parser.parse_args()
     main(args.num_haps,
          args.num_snps,
          args.Ne,
          args.length,
          args.recombination_rate,
          args.mutation_rate,
-         args.random_seed)
+         args.seed)
+
+    print('time elapsed:')
+    print(time.time() - start_time)
+
     cleanup()

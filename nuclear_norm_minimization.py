@@ -9,7 +9,7 @@ def phase(unphased):
     mask = get_mask(unphased)
     X = nuclear_norm_solve(unphased, mask)
     # round to the nearest integer
-    return np.matrix.round(X)
+    return np.matrix.round(X).astype(int)
 
 
 def nuclear_norm_solve(unphased, mask):
