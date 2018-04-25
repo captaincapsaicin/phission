@@ -8,7 +8,7 @@ from nuclear_norm_minimization import get_mask, nuclear_norm_solve
 from switch_error import switch_error
 
 
-def main(num_haps, num_snps, mu, num_ref, Ne, length, recombination_rate, mutation_rate, random_seed):
+def main(num_haps, num_snps, num_ref, Ne, length, recombination_rate, mutation_rate, random_seed):
     # simulate with msprime
     all_haplotypes = simulate_haplotype_matrix(num_haps,
                                                Ne=Ne,
@@ -88,7 +88,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args.num_haps,
          args.num_snps,
-         args.mu,
          args.num_ref,
          args.Ne,
          args.length,
