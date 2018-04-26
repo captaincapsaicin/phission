@@ -4,12 +4,9 @@ import subprocess
 import time
 
 import msprime
-import numpy as np
-from tabulate import tabulate
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from switch_error import switch_error
-from utils import read_haplotype_matrix_from_vcf
+from utils import read_haplotype_matrix_from_vcf, print_stats
 
 beagle_output_dir = 'beagle'
 input_vcf = '/'.join([beagle_output_dir, 'input.vcf'])
@@ -31,7 +28,7 @@ def unphase_vcf(input_vcf):
     subprocess.check_call('sed -i.bak "s/|/\//g" {}'.format(input_vcf), shell=True)
 
 
-def run_beagle(beagle_jar_path, input_vcf, beagle_output_path, verbose):
+def run_beagle(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
     # call beagle, suppress stdout
     beagle_command = 'java -jar {} gt={} out={}'.format(beagle_jar_path, input_vcf, beagle_output_path)
     if not verbose:
@@ -50,7 +47,14 @@ def remove_n_lines(vcf_file, n, output_file):
         f.write(''.join(lines))
 
 
-def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, random_seed=None, verbose=False):
+def main(num_haps,
+         num_snps,
+         Ne=1e5,
+         length=5e3,
+         recombination_rate=2e-8,
+         mutation_rate=2e-8,
+         random_seed=None,
+         verbose=False):
     tree_sequence = msprime.simulate(
          sample_size=num_haps,
          Ne=Ne,
@@ -60,7 +64,8 @@ def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, rand
          random_seed=random_seed)
     true_haplotypes = tree_sequence.genotype_matrix().T
     while true_haplotypes.shape[1] < num_snps:
-        print('resimulating...')
+        if verbose:
+            print('resimulating...')
         tree_sequence = msprime.simulate(
              sample_size=num_haps,
              Ne=Ne,
@@ -79,13 +84,11 @@ def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, rand
     unphase_vcf(input_vcf)
     new_input_vcf = 'beagle/new_input_vcf.vcf'
     remove_n_lines(input_vcf, num_snps_to_remove, new_input_vcf)
-    run_beagle(beagle_jar_path, new_input_vcf, beagle_output_path, verbose)
+    run_beagle(beagle_jar_path, new_input_vcf, beagle_output_path)
     beagle_output_vcf = beagle_output_path + '.vcf'
     phased_haplotypes = read_haplotype_matrix_from_vcf(beagle_output_vcf)
 
-    print('haplotype dimension')
     true_haplotypes = true_haplotypes[:, 0:num_snps]
-    print(true_haplotypes.shape)
 
     # constructed for statistics later, not used by beagle, which works directly on vcf
     genotypes = compress_to_genotype_matrix(true_haplotypes)
@@ -93,21 +96,8 @@ def main(num_haps, num_snps, Ne, length, recombination_rate, mutation_rate, rand
 
     # TODO nthomas: add some facility to contribute reference haplotypes to beagle
 
-    headers = ['nuclear norm', 'rank', 'normalized frob distance']
-    data = [['true', np.linalg.norm(true_haplotypes, 'nuc'), np.linalg.matrix_rank(true_haplotypes), 0],
-            ['beagle phased', np.linalg.norm(phased_haplotypes, 'nuc'), np.linalg.matrix_rank(phased_haplotypes), np.linalg.norm(phased_haplotypes - true_haplotypes)/np.linalg.norm(true_haplotypes)]]
-    print(tabulate(data, headers=headers))
-
-    num_phased = np.sum(np.logical_and(unphased_haplotypes == -1, phased_haplotypes != -1))
-    print('Positions phased:')
-    print(num_phased)
-
-    print('switch error')
-    print(switch_error(phased_haplotypes, true_haplotypes))
-    print('percent switch error')
-    num_phased = (np.sum(unphased_haplotypes == -1)) / 2
-    print(switch_error(phased_haplotypes, true_haplotypes) / num_phased)
-
+    if verbose:
+        print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes)
     return true_haplotypes, phased_haplotypes
 
 if __name__ == '__main__':
@@ -121,6 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
+    parser.add_argument('--verbose', action='store_true')
 
     # make sure there is a place for beagle output
     try:
@@ -136,7 +127,8 @@ if __name__ == '__main__':
              args.length,
              args.recombination_rate,
              args.mutation_rate,
-             args.seed)
+             args.seed,
+             verbose=args.verbose)
     except Exception as e:
         raise e
     finally:

@@ -5,8 +5,7 @@ import numpy as np
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from nuclear_norm_minimization import get_unmasked_even_indexes, phase, get_mask
-from switch_error import switch_error
-from utils import read_haplotype_matrix_from_vcf
+from utils import read_haplotype_matrix_from_vcf, switch_error
 
 
 class TestStuff(unittest.TestCase):
