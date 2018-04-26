@@ -2,4 +2,5 @@ cvxpy
 msprime
 numpy
 pytest
+scikit-allel
 tabulate
