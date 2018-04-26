@@ -111,6 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
+    args = parser.parse_args()
 
     # make sure there is a place for beagle output
     try:
@@ -118,7 +119,6 @@ if __name__ == '__main__':
     except FileExistsError:
         pass
 
-    args = parser.parse_args()
     try:
         main(args.num_haps,
              args.num_snps,
