@@ -99,7 +99,7 @@ if __name__ == '__main__':
                           (160, 80),
                           (160, 160)]
 
-    phission_stats, beagle_stats = main(args.num_experiments, num_haps_snps_list[:1])
+    phission_stats, beagle_stats = main(args.num_experiments, num_haps_snps_list)
     with open('phission_stats.pkl', 'wb') as f:
         pickle.dump(phission_stats, f)
     with open('beagle_stats.pkl', 'wb') as f:
