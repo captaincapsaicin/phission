@@ -85,3 +85,10 @@ def print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes):
     # print('\n')
     # border = -8*np.ones((true_haplotypes.shape[0], 1))
     # print(np.hstack([true_haplotypes, border, phased_haplotypes]).astype(int))
+
+
+def flip_columns(column_list, haplotypes):
+    flipped_haplotypes = haplotypes.copy()
+    for column in column_list:
+        flipped_haplotypes[:, column] = 1 - flipped_haplotypes[:, column]
+    return flipped_haplotypes

@@ -5,7 +5,7 @@ import numpy as np
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from nuclear_norm_minimization import get_unmasked_even_indexes, phase, get_mask
-from utils import read_haplotype_matrix_from_vcf, switch_error
+from utils import read_haplotype_matrix_from_vcf, switch_error, flip_columns
 
 
 class TestStuff(unittest.TestCase):
@@ -179,3 +179,34 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(tuple(read_haplotypes[1]), tuple(haplotypes[1]))
         self.assertEqual(tuple(read_haplotypes[2]), tuple(haplotypes[2]))
         self.assertEqual(tuple(read_haplotypes[3]), tuple(haplotypes[3]))
+
+    def test_flip_columns(self):
+        """
+        Test flipping the 0/1 convention
+        """
+        haplotypes = [[0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0]]
+        haplotypes = np.array(haplotypes)
+
+        expected_haplotypes = [[0, 1, 0, 1],
+                               [0, 1, 0, 1],
+                               [0, 1, 0, 1],
+                               [0, 1, 1, 1],
+                               [0, 0, 0, 1],
+                               [0, 1, 0, 1],
+                               [0, 0, 0, 1],
+                               [0, 1, 0, 1]]
+        expected_haplotypes = np.array(expected_haplotypes)
+
+        flipped_haplotypes = flip_columns([1, 3], haplotypes)
+        flipped_back = flip_columns([1, 3], flipped_haplotypes)
+        for i in range(len(haplotypes)):
+            self.assertEqual(tuple(flipped_haplotypes[i]), tuple(expected_haplotypes[i]))
+            self.assertEqual(tuple(flipped_back[i]), tuple(haplotypes[i]))
+
