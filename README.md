@@ -9,7 +9,7 @@ This package implements [haplotype phasing](https://en.wikipedia.org/wiki/Haplot
 Clone this repo
 
 ```
-git clone git@github.com:captaincapsaicin/phission.git
+git clone https://github.com/captaincapsaicin/phission.git
 ```
 
 From the project root, create a [virtual environment](https://virtualenv.pypa.io/en/stable/) using `virtualenv`
