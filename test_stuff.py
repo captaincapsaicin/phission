@@ -49,12 +49,6 @@ class TestStuff(unittest.TestCase):
         # https://stackoverflow.com/questions/7828867/how-to-efficiently-compare-two-unordered-lists-not-sets-in-python
         self.assertEqual(Counter(get_unmasked_even_indexes(mask)), Counter(indexes_expected))
 
-    # def test_complete(self):
-    #     """
-    #     Tests that the inferred matrix has all 1s and -1s, and no other values floating around. Sanity check
-    #     """
-    #     self.assertTrue(True)
-
     def test_switch_error(self):
         """
         Test switch error function
