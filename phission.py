@@ -61,7 +61,6 @@ if __name__ == '__main__':
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
-    parser.add_argument('--verbose', action='store_true')
 
     args = parser.parse_args()
     main(args.num_haps,
@@ -72,7 +71,7 @@ if __name__ == '__main__':
          args.recombination_rate,
          args.mutation_rate,
          args.seed,
-         verbose=args.verbose)
+         verbose=True)
 
     print('time elapsed:')
     print(time.time() - start_time)
