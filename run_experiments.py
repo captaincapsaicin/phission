@@ -33,6 +33,7 @@ def main(num_experiments, num_haps_snps_list, recombination_rate=0.0):
         beagle_stats[(num_haps, num_snps)]['time_to_phase'] = []
 
     for num_haps, num_snps in num_haps_snps_list:
+        print((num_haps, num_snps))
         for seed in range(1, num_experiments):
             print('Running {}'.format(seed))
             time_start = time.time()
