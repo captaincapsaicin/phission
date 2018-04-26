@@ -1,9 +1,5 @@
 cvxpy
-ipdb
-ipython
 msprime
 numpy
 pytest
-scikit-allel
-scipy
 tabulate

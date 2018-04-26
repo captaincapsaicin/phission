@@ -30,7 +30,7 @@ pip install numpy --no-cache-dir
 pip install msprime --no-cache-dir
 ```
 
-Then install the reset of the dependencies
+Then install the rest of the dependencies (this may take some time)
 ```
 pip install -r requirements.txt
 ```
