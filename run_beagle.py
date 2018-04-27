@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 import subprocess
 import time
 
@@ -7,7 +8,7 @@ import gzip
 import msprime
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from utils import read_haplotype_matrix_from_vcf, print_stats
+from utils import read_haplotype_matrix_from_vcf, print_stats, write_vcf_from_haplotype_matrix, flip_columns
 
 BEAGLE_OUTPUT_DIR = 'beagle'
 INPUT_VCF = '/'.join([BEAGLE_OUTPUT_DIR, 'input.vcf'])
@@ -15,13 +16,6 @@ NEW_INPUT_VCF = 'beagle/new_input_vcf.vcf'
 BEAGLE_OUTPUT_PATH = '/'.join([BEAGLE_OUTPUT_DIR, 'beagle_output'])
 BEAGLE_JAR_PATH = 'beagle.27Jan18.7e1.jar'
 BEAGLE_OUTPUT_VCF = BEAGLE_OUTPUT_PATH + '.vcf'
-
-# TODO nthomas: use util for writing haplotype matrices to simplify this file
-
-
-def unphase_vcf(input_vcf):
-    # make it fully unphased replace | -> /
-    subprocess.check_call('sed -i.bak "s/|/\//g" {}'.format(input_vcf), shell=True)
 
 
 def beagle_phase(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
@@ -36,14 +30,6 @@ def beagle_phase(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
     return phased_haplotypes
 
 
-def remove_n_lines(vcf_file, n, output_file):
-    with open(vcf_file, 'r') as f:
-        lines = list(f)
-    lines = lines[:-n]
-    with open(output_file, 'w') as f:
-        f.write(''.join(lines))
-
-
 def main(num_haps,
          num_snps,
          Ne=1e5,
@@ -51,6 +37,7 @@ def main(num_haps,
          recombination_rate=2e-8,
          mutation_rate=2e-8,
          random_seed=None,
+         flip=False,
          verbose=False):
     tree_sequence = msprime.simulate(
          sample_size=num_haps,
@@ -72,24 +59,19 @@ def main(num_haps,
              random_seed=random_seed)
         true_haplotypes = tree_sequence.genotype_matrix().T
 
-    with open(INPUT_VCF, 'w') as f:
-        tree_sequence.write_vcf(f, ploidy=2)
-
-    num_simulated_snps = true_haplotypes.shape[1]
-    num_snps_to_remove = num_simulated_snps - num_snps
-
-    unphase_vcf(INPUT_VCF)
-    remove_n_lines(INPUT_VCF, num_snps_to_remove, NEW_INPUT_VCF)
-    phased_haplotypes = beagle_phase(BEAGLE_JAR_PATH, NEW_INPUT_VCF, BEAGLE_OUTPUT_PATH)
-
     true_haplotypes = true_haplotypes[:, 0:num_snps]
+    if flip:
+        random.seed(a=random_seed)
+        column_list = random.choices([0, 1], k=num_haps)
+        true_haplotypes = flip_columns(column_list, true_haplotypes)
+    write_vcf_from_haplotype_matrix(INPUT_VCF, true_haplotypes, phased=False)
+    phased_haplotypes = beagle_phase(BEAGLE_JAR_PATH, INPUT_VCF, BEAGLE_OUTPUT_PATH)
 
     # constructed for statistics later, not used by beagle, which works directly on vcf
     genotypes = compress_to_genotype_matrix(true_haplotypes)
     unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
 
     # TODO nthomas: add some facility to contribute reference haplotypes to beagle
-
     if verbose:
         print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes)
     return true_haplotypes, phased_haplotypes
@@ -105,6 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
+    parser.add_argument('--flip', action='store_true')
     args = parser.parse_args()
 
     # make sure there is a place for beagle output
@@ -120,6 +103,7 @@ if __name__ == '__main__':
          args.recombination_rate,
          args.mutation_rate,
          args.seed,
+         args.flip,
          verbose=True)
 
     print('time elapsed:')
