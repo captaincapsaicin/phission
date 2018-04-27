@@ -16,6 +16,8 @@ BEAGLE_OUTPUT_PATH = '/'.join([BEAGLE_OUTPUT_DIR, 'beagle_output'])
 BEAGLE_JAR_PATH = 'beagle.27Jan18.7e1.jar'
 BEAGLE_OUTPUT_VCF = BEAGLE_OUTPUT_PATH + '.vcf'
 
+# TODO nthomas: use util for writing haplotype matrices to simplify this file
+
 
 def unphase_vcf(input_vcf):
     # make it fully unphased replace | -> /

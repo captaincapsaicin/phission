@@ -62,7 +62,7 @@ def read_haplotype_matrix_from_vcf(filepath):
     return haps
 
 
-def write_vcf_from_haplotype_matrix(filepath, haplotypes):
+def write_vcf_from_haplotype_matrix(filepath, haplotypes, phased=True):
     """
     Write the haplotype matrix to a vcf. Resulting vcf file will be phased.
     """
@@ -85,7 +85,8 @@ def write_vcf_from_haplotype_matrix(filepath, haplotypes):
             second = haplotypes[1::2, i - 1]
             sample_data = []
             for first, second in zip(first, second):
-                gt = '|'.join([str(first), str(second)])
+                joiner = '|' if phased else '/'
+                gt = joiner.join([str(first), str(second)])
                 sample_data.append(gt)
             line = ['1', i, '.', 'A', 'T', '.', 'PASS', '.', 'GT'] + sample_data
 
