@@ -1,11 +1,12 @@
 import argparse
+import random
 import time
 
 import numpy as np
 
 from msprime_simulator import simulate_haplotype_matrix, compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from phission import phission_phase
-from utils import print_stats
+from utils import print_stats, flip_columns
 
 
 def main(num_haps,
@@ -35,6 +36,8 @@ def main(num_haps,
                                                    random_seed=random_seed)
 
     true_haplotypes = all_haplotypes[:, 0:num_snps]
+    column_list = random.choices([0, 1], k=num_haps)
+    true_haplotypes = flip_columns(column_list, true_haplotypes)
 
     genotypes = compress_to_genotype_matrix(true_haplotypes)
     unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
