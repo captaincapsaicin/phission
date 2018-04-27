@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 
+import gzip
 import msprime
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
@@ -14,15 +15,6 @@ NEW_INPUT_VCF = 'beagle/new_input_vcf.vcf'
 BEAGLE_OUTPUT_PATH = '/'.join([BEAGLE_OUTPUT_DIR, 'beagle_output'])
 BEAGLE_JAR_PATH = 'beagle.27Jan18.7e1.jar'
 BEAGLE_OUTPUT_VCF = BEAGLE_OUTPUT_PATH + '.vcf'
-
-
-def cleanup():
-    """
-    Cleanup files so we don't have to do any overwrite (especially beagle)
-    May want to remove the cleanup step for debugging
-    """
-    os.remove(INPUT_VCF)
-    os.remove(BEAGLE_OUTPUT_PATH + '.vcf')
 
 
 def unphase_vcf(input_vcf):
@@ -37,10 +29,9 @@ def beagle_phase(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
         beagle_command += ' >/dev/null'
     subprocess.check_call(beagle_command, shell=True)
     beagle_output = beagle_output_path + '.vcf.gz'
-    # probably don't need this and can read directly from gzipped .vcf.gz
-    subprocess.check_call('gunzip {}'.format(beagle_output), shell=True)
-    beagle_output_vcf = beagle_output_path + '.vcf'
-    return read_haplotype_matrix_from_vcf(beagle_output_vcf)
+    with gzip.open(beagle_output, 'rb') as f:
+        phased_haplotypes = read_haplotype_matrix_from_vcf(f)
+    return phased_haplotypes
 
 
 def remove_n_lines(vcf_file, n, output_file):
@@ -120,19 +111,14 @@ if __name__ == '__main__':
     except FileExistsError:
         pass
 
-    try:
-        main(args.num_haps,
-             args.num_snps,
-             args.Ne,
-             args.length,
-             args.recombination_rate,
-             args.mutation_rate,
-             args.seed,
-             verbose=True)
-    except Exception as e:
-        raise e
-    finally:
-        cleanup()
+    main(args.num_haps,
+         args.num_snps,
+         args.Ne,
+         args.length,
+         args.recombination_rate,
+         args.mutation_rate,
+         args.seed,
+         verbose=True)
 
     print('time elapsed:')
     print(time.time() - start_time)

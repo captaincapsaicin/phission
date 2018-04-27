@@ -6,11 +6,10 @@ import numpy as np
 import msprime
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from utils import switch_error
+from utils import switch_error, flip_columns
 
 from phission import phission_phase
-from run_beagle import (cleanup as beagle_cleanup,
-                        beagle_phase,
+from run_beagle import (beagle_phase,
                         remove_n_lines,
                         unphase_vcf,
                         INPUT_VCF,
