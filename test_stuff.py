@@ -1,11 +1,12 @@
 from collections import Counter
+import os
 import unittest
 
 import numpy as np
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from phission import get_unmasked_even_indexes, phission_phase, get_mask
-from utils import read_haplotype_matrix_from_vcf, switch_error, flip_columns
+from utils import read_haplotype_matrix_from_vcf, switch_error, flip_columns, write_vcf_from_haplotype_matrix
 
 
 class TestStuff(unittest.TestCase):
@@ -179,6 +180,31 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(tuple(read_haplotypes[1]), tuple(haplotypes[1]))
         self.assertEqual(tuple(read_haplotypes[2]), tuple(haplotypes[2]))
         self.assertEqual(tuple(read_haplotypes[3]), tuple(haplotypes[3]))
+
+    def test_vcf_from_haplotype_matrix(self):
+        haplotypes = [[0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 0, 0]]
+        haplotypes = np.array(haplotypes)
+
+        test_filepath = 'fixtures/test_vcf_from_haplotype_matrix.vcf'
+        write_vcf_from_haplotype_matrix(test_filepath, haplotypes)
+        read_haplotypes = read_haplotype_matrix_from_vcf(test_filepath)
+
+        try:
+            self.assertEqual(tuple(read_haplotypes[0]), tuple(haplotypes[0]))
+            self.assertEqual(tuple(read_haplotypes[1]), tuple(haplotypes[1]))
+            self.assertEqual(tuple(read_haplotypes[2]), tuple(haplotypes[2]))
+            self.assertEqual(tuple(read_haplotypes[3]), tuple(haplotypes[3]))
+        except Exception as e:
+            raise e
+        finally:
+            os.remove(test_filepath)
 
     def test_flip_columns(self):
         """

@@ -1,6 +1,7 @@
+import csv
+
 import allel
 import numpy as np
-
 from tabulate import tabulate
 
 
@@ -44,13 +45,12 @@ def switch_error(observed, expected):
     return switch_errors
 
 
-def read_haplotype_matrix_from_vcf(vcf_file):
+def read_haplotype_matrix_from_vcf(filepath):
     """"
     Read the vcf file into a haplotype matrix (numpy)
     assume everything is phased,
-
     """
-    callset = allel.read_vcf(vcf_file)
+    callset = allel.read_vcf(filepath)
     gt = callset['calldata/GT']
     hap0 = gt[:, :, 0].T
     hap1 = gt[:, :, 1].T
@@ -60,6 +60,36 @@ def read_haplotype_matrix_from_vcf(vcf_file):
     haps[1::2] = hap1
 
     return haps
+
+
+def write_vcf_from_haplotype_matrix(filepath, haplotypes):
+    """
+    Write the haplotype matrix to a vcf. Resulting vcf file will be phased.
+    """
+    num_haps, num_snps = haplotypes.shape
+    leading_string = '##fileformat=VCFv4.2\n##source=msprime 0.5.0\n##FILTER=<ID=PASS,Description="All filters passed">\n##contig=<ID=1,length=5000>\n##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">\n'
+
+    header = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
+    header += ['msp_' + str(i) for i in range(num_haps // 2)]
+    with open(filepath, 'w') as f:
+        f.write(leading_string)
+
+    # appending now
+    with open(filepath, 'a') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(header)
+
+        # pull out each line
+        for i in range(1, num_snps + 1):
+            first = haplotypes[::2, i - 1]
+            second = haplotypes[1::2, i - 1]
+            sample_data = []
+            for first, second in zip(first, second):
+                gt = '|'.join([str(first), str(second)])
+                sample_data.append(gt)
+            line = ['1', i, '.', 'A', 'T', '.', 'PASS', '.', 'GT'] + sample_data
+
+            writer.writerow(line)
 
 
 def print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes):
@@ -92,3 +122,5 @@ def flip_columns(column_list, haplotypes):
     for column in column_list:
         flipped_haplotypes[:, column] = 1 - flipped_haplotypes[:, column]
     return flipped_haplotypes
+
+
