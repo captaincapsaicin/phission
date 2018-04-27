@@ -8,19 +8,21 @@ import msprime
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from utils import read_haplotype_matrix_from_vcf, print_stats
 
-beagle_output_dir = 'beagle'
-input_vcf = '/'.join([beagle_output_dir, 'input.vcf'])
-beagle_output_path = '/'.join([beagle_output_dir, 'beagle_output'])
-beagle_jar_path = 'beagle.27Jan18.7e1.jar'
+BEAGLE_OUTPUT_DIR = 'beagle'
+INPUT_VCF = '/'.join([BEAGLE_OUTPUT_DIR, 'input.vcf'])
+NEW_INPUT_VCF = 'beagle/new_input_vcf.vcf'
+BEAGLE_OUTPUT_PATH = '/'.join([BEAGLE_OUTPUT_DIR, 'beagle_output'])
+BEAGLE_JAR_PATH = 'beagle.27Jan18.7e1.jar'
+BEAGLE_OUTPUT_VCF = BEAGLE_OUTPUT_PATH + '.vcf'
 
 
 def cleanup():
     """
-    Cleanup files so we don't have to do any overrite (especially beagle)
+    Cleanup files so we don't have to do any overwrite (especially beagle)
     May want to remove the cleanup step for debugging
     """
-    os.remove(input_vcf)
-    os.remove(beagle_output_path + '.vcf')
+    os.remove(INPUT_VCF)
+    os.remove(BEAGLE_OUTPUT_PATH + '.vcf')
 
 
 def unphase_vcf(input_vcf):
@@ -28,7 +30,7 @@ def unphase_vcf(input_vcf):
     subprocess.check_call('sed -i.bak "s/|/\//g" {}'.format(input_vcf), shell=True)
 
 
-def run_beagle(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
+def beagle_phase(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
     # call beagle, suppress stdout
     beagle_command = 'java -jar {} gt={} out={}'.format(beagle_jar_path, input_vcf, beagle_output_path)
     if not verbose:
@@ -37,6 +39,8 @@ def run_beagle(beagle_jar_path, input_vcf, beagle_output_path, verbose=False):
     beagle_output = beagle_output_path + '.vcf.gz'
     # probably don't need this and can read directly from gzipped .vcf.gz
     subprocess.check_call('gunzip {}'.format(beagle_output), shell=True)
+    beagle_output_vcf = beagle_output_path + '.vcf'
+    return read_haplotype_matrix_from_vcf(beagle_output_vcf)
 
 
 def remove_n_lines(vcf_file, n, output_file):
@@ -75,18 +79,15 @@ def main(num_haps,
              random_seed=random_seed)
         true_haplotypes = tree_sequence.genotype_matrix().T
 
-    with open(input_vcf, 'w') as f:
+    with open(INPUT_VCF, 'w') as f:
         tree_sequence.write_vcf(f, ploidy=2)
 
     num_simulated_snps = true_haplotypes.shape[1]
     num_snps_to_remove = num_simulated_snps - num_snps
 
-    unphase_vcf(input_vcf)
-    new_input_vcf = 'beagle/new_input_vcf.vcf'
-    remove_n_lines(input_vcf, num_snps_to_remove, new_input_vcf)
-    run_beagle(beagle_jar_path, new_input_vcf, beagle_output_path)
-    beagle_output_vcf = beagle_output_path + '.vcf'
-    phased_haplotypes = read_haplotype_matrix_from_vcf(beagle_output_vcf)
+    unphase_vcf(INPUT_VCF)
+    remove_n_lines(INPUT_VCF, num_snps_to_remove, NEW_INPUT_VCF)
+    phased_haplotypes = beagle_phase(BEAGLE_JAR_PATH, NEW_INPUT_VCF, BEAGLE_OUTPUT_PATH)
 
     true_haplotypes = true_haplotypes[:, 0:num_snps]
 
@@ -115,7 +116,7 @@ if __name__ == '__main__':
 
     # make sure there is a place for beagle output
     try:
-        os.mkdir(beagle_output_dir)
+        os.mkdir(BEAGLE_OUTPUT_DIR)
     except FileExistsError:
         pass
 

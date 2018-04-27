@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from nuclear_norm_minimization import get_unmasked_even_indexes, phase, get_mask
+from phission import get_unmasked_even_indexes, phission_phase, get_mask
 from utils import read_haplotype_matrix_from_vcf, switch_error, flip_columns
 
 
@@ -24,7 +24,7 @@ class TestStuff(unittest.TestCase):
              [1, 1, 1, 1, 0, 1]]
         m = np.array(m)
 
-        m_complete = phase(m)
+        m_complete = phission_phase(m)
 
         # nothing should be -1 (i.e. unphased)
         self.assertTrue((1 - (m_complete == -1)).all())

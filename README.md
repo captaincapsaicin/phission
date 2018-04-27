@@ -38,13 +38,13 @@ pip install -r requirements.txt
 ## Running the example
 
 ```
-python phission.py --num-haps 100 --num-snps 60 --seed 1
+python run_phission.py --num-haps 100 --num-snps 60 --seed 1
 ```
 
 For help with command line options, run:
 
 ```
-python phission.py -h
+python run_phission.py -h
 ```
 
 ## Running beagle for comparison
@@ -57,7 +57,7 @@ wget https://faculty.washington.edu/browning/beagle/beagle.27Jan18.7e1.jar
 
 Then run the script
 ```
-python beagle.py --num-haps 100 --num-snps 60 --seed 1
+python run_beagle.py --num-haps 100 --num-snps 60 --seed 1
 ```
 
 ## Running tests

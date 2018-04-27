@@ -1,77 +1,99 @@
-import argparse
-import time
-
+import cvxpy as cvx
 import numpy as np
 
-from msprime_simulator import simulate_haplotype_matrix, compress_to_genotype_matrix, get_incomplete_phasing_matrix
-from nuclear_norm_minimization import phase
-from utils import print_stats
+
+def phission_phase(unphased):
+    """
+    Matrix completion with phasing
+    """
+    mask = get_mask(unphased)
+    X = nuclear_norm_solve(unphased, mask)
+    # round to the nearest integer
+    return np.matrix.round(X).astype(int)
 
 
-def main(num_haps,
-         num_snps,
-         num_ref=0,
-         Ne=1e5,
-         length=5e3,
-         recombination_rate=2e-8,
-         mutation_rate=2e-8,
-         random_seed=None,
-         verbose=False):
-    # simulate with msprime
-    all_haplotypes = simulate_haplotype_matrix(num_haps,
-                                               Ne=Ne,
-                                               length=length,
-                                               recombination_rate=recombination_rate,
-                                               mutation_rate=mutation_rate,
-                                               random_seed=random_seed)
-    while all_haplotypes.shape[1] < num_snps:
-        if verbose:
-            print('resimulating...')
-        all_haplotypes = simulate_haplotype_matrix(num_haps,
-                                                   Ne=Ne,
-                                                   length=length,
-                                                   recombination_rate=recombination_rate,
-                                                   mutation_rate=mutation_rate,
-                                                   random_seed=random_seed)
+def nuclear_norm_solve(unphased, mask):
+    """
+    Parameters:
+    -----------
+    unphased : m x n array
+        matrix we want to complete
+    mask : m x n array
+        matrix with entries zero (if missing) or one (if present)
 
-    true_haplotypes = all_haplotypes[:, 0:num_snps]
-
-    genotypes = compress_to_genotype_matrix(true_haplotypes)
-    unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
-
-    unphased_haplotypes = np.vstack([unphased_haplotypes, true_haplotypes[0:num_ref]])
-    true_with_ref = np.vstack([true_haplotypes, true_haplotypes[0:num_ref]])
-
-    phased_haplotypes = phase(unphased_haplotypes)
-
-    if verbose:
-        print_stats(true_with_ref, unphased_haplotypes, phased_haplotypes)
-    return true_haplotypes, phased_haplotypes
+    Returns:
+    --------
+    X: m x n array
+        completed matrix
+    """
+    X = cvx.Variable(*unphased.shape)
+    objective = cvx.Minimize(cvx.norm(X, "nuc"))
+    # equality constraints
+    constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
+    constraints += get_sum_to_1_constraints(mask, X)
+    constraints += get_symmetry_breaking_constraints(mask, X)
+    problem = cvx.Problem(objective, constraints)
+    problem.solve()
+    return X.value
 
 
-if __name__ == '__main__':
-    start_time = time.time()
+def get_symmetry_breaking_constraints(mask, X):
+    """
+    mask : m x n array
+        matrix with entries zero (if missing) or one (if present)
+    X  :
+        cvxpy variable that we're solving for.
 
-    parser = argparse.ArgumentParser(description='Phase!')
-    parser.add_argument('--num-haps', type=int, help='number of haplotypes to simulate (2*individuals)')
-    parser.add_argument('--num-snps', type=int, help='number of snps to include')
-    parser.add_argument('--num-ref', type=int, default=0, help='number of true reference haplotypes to append')
-    parser.add_argument('--Ne', type=float, default=1e5, help='effective population size (msprime parameter)')
-    parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
-    parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
-    parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
-    parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
+    We want the first set of indexes for every 0/0 mask pair for each individual
+    """
+    constraints = []
+    indexes = get_unmasked_even_indexes(mask)
+    seen_individuals = set()
+    for i, j in indexes:
+        if i not in seen_individuals:
+            constraints.append(X[i, j] == 1)
+            constraints.append(X[i + 1, j] == 0)
+            seen_individuals.add(i)
+    return constraints
 
-    args = parser.parse_args()
-    main(args.num_haps,
-         args.num_snps,
-         args.num_ref,
-         args.Ne,
-         args.length,
-         args.recombination_rate,
-         args.mutation_rate,
-         args.seed,
-         verbose=True)
 
-    print('time elapsed:')
-    print(time.time() - start_time)
+def get_sum_to_1_constraints(mask, X):
+    """
+    A is our starting matrix, it has 0s in the spot we need to phase
+    X is our cvxpy variable that we're solving for.
+
+    We need each pair of phased haplotypes to sum to 0 (i.e. one is -1 and the other is 1)
+    """
+    constraints = []
+    indexes = get_unmasked_even_indexes(mask)
+    for i, j in indexes:
+        constraints.append((X[i, j] + X[i + 1, j]) == 1)
+    return constraints
+
+
+def get_mask(A):
+    """
+    Gets a mask indicating non-homozygous elements from haplotype matrix A
+    """
+    return A != -1
+
+
+def get_unmasked_even_indexes(mask):
+    """
+    mask : m x n array
+        matrix with entries zero (if missing) or one (if present)
+
+    For use in setting up constraints.
+    """
+    i, j = np.nonzero(1 - mask)
+    new_i = []
+    new_j = []
+    # we're going to filter out all of the odds, since we know about those already
+    # and maybe it'll be confusing later on? I'm not sure. I guess we could just remove them later.
+    # but I'd rather have a set where I can be like (i, j) + (i+1, j) == 1. basically.
+    for index in range(len(i)):
+        if i[index] % 2 == 0:
+            new_i.append(i[index])
+            new_j.append(j[index])
+
+    return zip(new_i, new_j)
