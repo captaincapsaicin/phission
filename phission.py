@@ -2,17 +2,17 @@ import cvxpy as cvx
 import numpy as np
 
 
-def phission_phase(unphased):
+def phission_phase(unphased, mu=1.0):
     """
     Matrix completion with phasing
     """
     mask = get_mask(unphased)
-    X = nuclear_norm_solve(unphased, mask)
+    X = nuclear_norm_solve(unphased, mask, mu)
     # round to the nearest integer
     return np.matrix.round(X).astype(int)
 
 
-def nuclear_norm_solve(unphased, mask):
+def nuclear_norm_solve(unphased, mask, mu):
     """
     Parameters:
     -----------
@@ -20,6 +20,8 @@ def nuclear_norm_solve(unphased, mask):
         matrix we want to complete
     mask : m x n array
         matrix with entries zero (if missing) or one (if present)
+    mu : float
+        parameter that trades off between low rank and exceptions made
 
     Returns:
     --------
@@ -27,7 +29,8 @@ def nuclear_norm_solve(unphased, mask):
         completed matrix
     """
     X = cvx.Variable(*unphased.shape)
-    objective = cvx.Minimize(cvx.norm(X, "nuc"))
+    Z = cvx.Variable(*unphased.shape)
+    objective = cvx.Minimize(cvx.norm(Z, "nuc") + mu*cvx.norm(X - Z, 1))
     # equality constraints
     constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
     constraints += get_sum_to_1_constraints(mask, X)
