@@ -123,5 +123,3 @@ def flip_columns(column_list, haplotypes):
     for column in column_list:
         flipped_haplotypes[:, column] = 1 - flipped_haplotypes[:, column]
     return flipped_haplotypes
-
-

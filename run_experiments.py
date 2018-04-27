@@ -87,6 +87,7 @@ def main(num_experiments,
         phission_dict = phission_stats[(num_haps, num_snps)]
         beagle_dict = beagle_stats[(num_haps, num_snps)]
         for random_seed in range(1, num_experiments + 1):
+            random.seed(a=random_seed)
             print('Running {}'.format(random_seed))
             true_original_haplotypes = simulate_haplotypes(num_haps,
                                                            num_snps,

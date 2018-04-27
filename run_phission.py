@@ -17,6 +17,7 @@ def main(num_haps,
          recombination_rate=2e-8,
          mutation_rate=2e-8,
          random_seed=None,
+         flip=False,
          verbose=False):
     # simulate with msprime
     all_haplotypes = simulate_haplotype_matrix(num_haps,
@@ -36,8 +37,10 @@ def main(num_haps,
                                                    random_seed=random_seed)
 
     true_haplotypes = all_haplotypes[:, 0:num_snps]
-    column_list = random.choices([0, 1], k=num_haps)
-    true_haplotypes = flip_columns(column_list, true_haplotypes)
+    if flip:
+        random.seed(a=random_seed)
+        column_list = random.choices([0, 1], k=num_haps)
+        true_haplotypes = flip_columns(column_list, true_haplotypes)
 
     genotypes = compress_to_genotype_matrix(true_haplotypes)
     unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
@@ -64,8 +67,9 @@ if __name__ == '__main__':
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
-
+    parser.add_argument('--flip', action='store_true')
     args = parser.parse_args()
+
     main(args.num_haps,
          args.num_snps,
          args.num_ref,
@@ -74,6 +78,7 @@ if __name__ == '__main__':
          args.recombination_rate,
          args.mutation_rate,
          args.seed,
+         args.flip,
          verbose=True)
 
     print('time elapsed:')
