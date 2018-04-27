@@ -41,8 +41,9 @@ def simulate_haplotypes(num_haps,
 
     # there's some chance we'll fail to get enough in the simulation
     while true_haplotypes.shape[1] < num_snps:
+        random_seed += 1000  # just a deterministic choice of new seed
         if verbose:
-            print('resimulating...')
+            print('resimulating... new random seed {}'.format(random_seed))
         tree_sequence = msprime.simulate(sample_size=num_haps,
                                          Ne=Ne,
                                          length=length,
@@ -156,29 +157,29 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
     args = parser.parse_args()
 
-    # num_haps_snps_list = [(4, 4),
-    #                       (10, 10),
-    #                       (10, 20),
-    #                       (20, 10),
-    #                       (20, 20),
-    #                       (20, 40),
-    #                       (40, 10),
-    #                       (40, 20),
-    #                       (40, 40),
-    #                       (40, 80),
-    #                       (80, 10),
-    #                       (80, 20),
-    #                       (80, 40),
-    #                       (80, 80),
-    #                       (80, 160),
-    #                       (160, 10),
-    #                       (160, 20),
-    #                       (160, 40),
-    #                       (160, 80),
-    #                       (160, 160)]
+    num_haps_snps_list = [(4, 4),
+                          (10, 10),
+                          (10, 20),
+                          (20, 10),
+                          (20, 20),
+                          (20, 40),
+                          (40, 10),
+                          (40, 20),
+                          (40, 40),
+                          (40, 80),
+                          (80, 10),
+                          (80, 20),
+                          (80, 40),
+                          (80, 80),
+                          (80, 160),
+                          (160, 10),
+                          (160, 20),
+                          (160, 40),
+                          (160, 80),
+                          (160, 160)]
 
     # I'm just setting a default for this for now.
-    num_haps_snps_list = [(20, 20), (160, 80)]
+    # num_haps_snps_list = [(20, 20), (160, 80)]
     phission_stats, beagle_stats = main(args.num_experiments,
                                         num_haps_snps_list,
                                         args.Ne,
@@ -189,18 +190,3 @@ if __name__ == '__main__':
         pickle.dump(phission_stats, f)
     with open('beagle_stats.pkl', 'wb') as f:
         pickle.dump(beagle_stats, f)
-
-
-# Can get pickle data back with
-# import pickle
-# import numpy as np
-# with open('beagle_stats.pkl', 'rb') as f:
-#     beagle_stats = pickle.load(f)
-# with open('phission_stats.pkl', 'rb') as f:
-#     phission_stats = pickle.load(f)
-# print('average reduction in rank (- means increase in rank')
-# print(np.mean(phission_stats[(20, 20)]['rank_true'] - phission_stats[(20, 20)]['rank_phased']))
-# print(np.mean(beagle_stats[(20, 20)]['rank_true'] - beagle_stats[(20, 20)]['rank_phased']))
-# print('average percent switch error')
-# print(np.mean(phission_stats[(20, 20)]['switch_error'] / phission_stats[(20, 20)]['positions_phased']))
-# print(np.mean(beagle_stats[(20, 20)]['switch_error'] / beagle_stats[(20, 20)]['positions_phased']))
