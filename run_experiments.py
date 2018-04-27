@@ -27,7 +27,8 @@ def simulate_haplotypes(num_haps,
                         mutation_rate,
                         random_seed,
                         verbose=True,
-                        write_vcf_for_beagle=True):
+                        write_vcf_for_beagle=True,
+                        timeout=100):
     """
     Simulate haplotypes and write them to beagle input vcfs if necessary. Essentially setup for an experiment
     """
@@ -40,7 +41,10 @@ def simulate_haplotypes(num_haps,
     true_haplotypes = tree_sequence.genotype_matrix().T
 
     # there's some chance we'll fail to get enough in the simulation
+    tries = 0
     while true_haplotypes.shape[1] < num_snps:
+        if tries > timeout:
+            raise TimeoutError
         random_seed += 1000  # just a deterministic choice of new seed
         if verbose:
             print('resimulating... new random seed {}'.format(random_seed))
@@ -51,6 +55,7 @@ def simulate_haplotypes(num_haps,
                                          mutation_rate=mutation_rate,
                                          random_seed=random_seed)
         true_haplotypes = tree_sequence.genotype_matrix().T
+        tries += 1
 
     if write_vcf_for_beagle:
         with open(INPUT_VCF, 'w') as f:
