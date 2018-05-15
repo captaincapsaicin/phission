@@ -5,9 +5,9 @@ import subprocess
 import time
 
 import gzip
-import msprime
+import numpy as np
 
-from msprime_simulator import compress_to_genotype_matrix, get_incomplete_phasing_matrix
+from msprime_simulator import simulate_haplotype_matrix, compress_to_genotype_matrix, get_incomplete_phasing_matrix
 from utils import read_haplotype_matrix_from_vcf, print_stats, write_vcf_from_haplotype_matrix, flip_columns
 
 BEAGLE_OUTPUT_DIR = 'beagle'
@@ -39,27 +39,18 @@ def main(num_haps,
          random_seed=None,
          flip=False,
          verbose=False):
-    tree_sequence = msprime.simulate(
-         sample_size=num_haps,
-         Ne=Ne,
-         length=length,
-         recombination_rate=recombination_rate,
-         mutation_rate=mutation_rate,
-         random_seed=random_seed)
-    true_haplotypes = tree_sequence.genotype_matrix().T
+    true_haplotypes = np.array([[]])
     while true_haplotypes.shape[1] < num_snps:
         if verbose:
-            print('resimulating...')
-        tree_sequence = msprime.simulate(
-             sample_size=num_haps,
-             Ne=Ne,
-             length=length,
-             recombination_rate=recombination_rate,
-             mutation_rate=mutation_rate,
-             random_seed=random_seed)
-        true_haplotypes = tree_sequence.genotype_matrix().T
+            print('simulating...')
+        true_haplotypes = simulate_haplotype_matrix(num_haps,
+                                                    num_snps,
+                                                    Ne=Ne,
+                                                    length=length,
+                                                    recombination_rate=recombination_rate,
+                                                    mutation_rate=mutation_rate,
+                                                    random_seed=random_seed)
 
-    true_haplotypes = true_haplotypes[:, 0:num_snps]
     if flip:
         random.seed(a=random_seed)
         column_list = random.choices([0, 1], k=num_haps)

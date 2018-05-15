@@ -2,20 +2,22 @@ import msprime
 import numpy as np
 
 
-def simulate_haplotype_matrix(sample_size,
+def simulate_haplotype_matrix(num_haps,
+                              num_snps,
                               Ne=1e4,
                               length=5e3,
                               recombination_rate=0,
                               mutation_rate=2e-8,
                               random_seed=None):
     """
-    Returns an n individual x m SNP haplotype matrix of 0s and 1s.
-
-    TODO nthomas: some way to request a number of SNPs. Depends on Ne, so probably
-    need to oversimulate, then truncate. Or just let the user do that downstream.
+    Returns a num_haps x num_snps haplotype matrix of 0s and 1s.
     """
+    cur_num_haps = num_haps
+    while expected_num_snps(cur_num_haps, Ne, length, mutation_rate) < 2 * num_snps:
+        cur_num_haps = 2*cur_num_haps  # just double it until the expectation is pretty high
+
     tree_sequence = msprime.simulate(
-         sample_size=sample_size,
+         sample_size=cur_num_haps,
          Ne=Ne,
          length=length,
          recombination_rate=recombination_rate,
@@ -23,8 +25,13 @@ def simulate_haplotype_matrix(sample_size,
          random_seed=random_seed)
 
     haplotype_matrix = tree_sequence.genotype_matrix().T
+    print(haplotype_matrix.shape) # TODO REMOVE DEBUGGING NTHOMAS
     # we take the transpose to get individuals in rows, SNPs in columns
-    return haplotype_matrix
+    return haplotype_matrix[:num_haps, :num_snps]
+
+
+def expected_num_snps(num_haps, Ne, length, mutation_rate):
+    return 4 * mutation_rate * length * Ne * np.sum([1/i for i in range(1, num_haps)])
 
 
 def compress_to_genotype_matrix(haplotypes):
