@@ -25,7 +25,6 @@ def simulate_haplotype_matrix(num_haps,
          random_seed=random_seed)
 
     haplotype_matrix = tree_sequence.genotype_matrix().T
-    print(haplotype_matrix.shape) # TODO REMOVE DEBUGGING NTHOMAS
     # we take the transpose to get individuals in rows, SNPs in columns
     return haplotype_matrix[:num_haps, :num_snps]
 
