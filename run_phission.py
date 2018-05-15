@@ -18,7 +18,8 @@ def main(num_haps,
          mutation_rate=2e-8,
          random_seed=None,
          flip=False,
-         verbose=False):
+         verbose=False,
+         print_matrices=False):
     # simulate with msprime
     true_haplotypes = np.array([[]])
     while true_haplotypes.shape[1] < num_snps:
@@ -46,7 +47,7 @@ def main(num_haps,
     phased_haplotypes = phission_phase(unphased_haplotypes)
 
     if verbose:
-        print_stats(true_with_ref, unphased_haplotypes, phased_haplotypes)
+        print_stats(true_with_ref, unphased_haplotypes, phased_haplotypes, print_matrices=print_matrices)
     return true_haplotypes, phased_haplotypes
 
 
@@ -63,6 +64,7 @@ if __name__ == '__main__':
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
     parser.add_argument('--flip', action='store_true')
+    parser.add_argument('--print-matrices', action='store_true')
     args = parser.parse_args()
 
     main(args.num_haps,
@@ -74,7 +76,8 @@ if __name__ == '__main__':
          args.mutation_rate,
          args.seed,
          args.flip,
-         verbose=True)
+         verbose=True,
+         print_matrices=args.print_matrices)
 
     print('time elapsed:')
     print(time.time() - start_time)
