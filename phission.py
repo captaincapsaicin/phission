@@ -2,7 +2,7 @@ import cvxpy as cvx
 import numpy as np
 
 
-def phission_phase(unphased, mu=1.0):
+def phission_phase(unphased, mu=0.0):
     """
     Matrix completion with phasing
     """
@@ -30,6 +30,7 @@ def nuclear_norm_solve(unphased, mask, mu):
     """
     X = cvx.Variable(*unphased.shape)
     Z = cvx.Variable(*unphased.shape)
+    # nuclear norm + l1 penalty for deviations from known positions
     objective = cvx.Minimize(cvx.norm(Z, "nuc") + mu*cvx.norm(X - Z, 1))
     # equality constraints
     constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]

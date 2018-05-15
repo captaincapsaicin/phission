@@ -113,9 +113,9 @@ def print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes):
     print(switch_error(phased_haplotypes, true_haplotypes) / num_phased)
 
     # uncomment to print out comparable matrices
-    # print('\n')
-    # border = -8*np.ones((true_haplotypes.shape[0], 1))
-    # print(np.hstack([true_haplotypes, border, phased_haplotypes]).astype(int))
+    print('\n')
+    border = -8*np.ones((true_haplotypes.shape[0], 1))
+    print(np.hstack([true_haplotypes, border, phased_haplotypes]).astype(int))
 
 
 def flip_columns(column_list, haplotypes):

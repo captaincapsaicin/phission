@@ -61,7 +61,8 @@ def main(num_experiments,
          Ne,
          length,
          recombination_rate,
-         mutation_rate):
+         mutation_rate,
+         mu):
     phission_stats = {}
     beagle_stats = {}
     for num_haps, num_snps in num_haps_snps_list:
@@ -89,42 +90,42 @@ def main(num_experiments,
         for random_seed in range(1, num_experiments + 1):
             random.seed(a=random_seed)
             print('Running {}'.format(random_seed))
-            true_original_haplotypes = simulate_haplotypes(num_haps,
-                                                           num_snps,
-                                                           Ne,
-                                                           length,
-                                                           recombination_rate,
-                                                           mutation_rate,
-                                                           random_seed)
-            for i in range(10):
-                # randomly flip some number of column conventions
-                column_list = random.choices([0, 1], k=num_haps)
-                true_haplotypes = flip_columns(column_list, true_original_haplotypes)
-                write_vcf_from_haplotype_matrix(INPUT_VCF, true_haplotypes, phased=False)
-                genotypes = compress_to_genotype_matrix(true_haplotypes)
-                unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
+            true_haplotypes = simulate_haplotypes(num_haps,
+                                                  num_snps,
+                                                  Ne,
+                                                  length,
+                                                  recombination_rate,
+                                                  mutation_rate,
+                                                  random_seed)
+            # for i in range(10):
+            #     # randomly flip some number of column conventions
+            #     column_list = random.choices([0, 1], k=num_haps)
+            #     true_haplotypes = flip_columns(column_list, true_original_haplotypes)
+            write_vcf_from_haplotype_matrix(INPUT_VCF, true_haplotypes, phased=False)
+            genotypes = compress_to_genotype_matrix(true_haplotypes)
+            unphased_haplotypes = get_incomplete_phasing_matrix(genotypes)
 
-                time_start = time.time()
-                phased_haplotypes = phission_phase(unphased_haplotypes)
+            time_start = time.time()
+            phased_haplotypes = phission_phase(unphased_haplotypes, mu=mu)
 
-                phission_dict['rank_true'].append(np.linalg.matrix_rank(true_haplotypes))
-                phission_dict['rank_phased'].append(np.linalg.matrix_rank(phased_haplotypes))
-                phission_dict['nuclear_norm_true'].append(np.linalg.norm(true_haplotypes, 'nuc'))
-                phission_dict['nuclear_norm_phased'].append(np.linalg.norm(phased_haplotypes, 'nuc'))
-                phission_dict['switch_error'].append(switch_error(phased_haplotypes, true_haplotypes))
-                phission_dict['positions_phased'].append(np.sum(unphased_haplotypes == -1) / 2)
-                phission_dict['time_to_phase'].append(time.time() - time_start)
+            phission_dict['rank_true'].append(np.linalg.matrix_rank(true_haplotypes))
+            phission_dict['rank_phased'].append(np.linalg.matrix_rank(phased_haplotypes))
+            phission_dict['nuclear_norm_true'].append(np.linalg.norm(true_haplotypes, 'nuc'))
+            phission_dict['nuclear_norm_phased'].append(np.linalg.norm(phased_haplotypes, 'nuc'))
+            phission_dict['switch_error'].append(switch_error(phased_haplotypes, true_haplotypes))
+            phission_dict['positions_phased'].append(np.sum(unphased_haplotypes == -1) / 2)
+            phission_dict['time_to_phase'].append(time.time() - time_start)
 
-                time_start = time.time()
-                phased_haplotypes = beagle_phase(BEAGLE_JAR_PATH, INPUT_VCF, BEAGLE_OUTPUT_PATH)
+            time_start = time.time()
+            phased_haplotypes = beagle_phase(BEAGLE_JAR_PATH, INPUT_VCF, BEAGLE_OUTPUT_PATH)
 
-                beagle_dict['rank_true'].append(np.linalg.matrix_rank(true_haplotypes))
-                beagle_dict['rank_phased'].append(np.linalg.matrix_rank(phased_haplotypes))
-                beagle_dict['nuclear_norm_true'].append(np.linalg.norm(true_haplotypes, 'nuc'))
-                beagle_dict['nuclear_norm_phased'].append(np.linalg.norm(phased_haplotypes, 'nuc'))
-                beagle_dict['switch_error'].append(switch_error(phased_haplotypes, true_haplotypes))
-                beagle_dict['positions_phased'].append(np.sum(unphased_haplotypes == -1) / 2)
-                beagle_dict['time_to_phase'].append(time.time() - time_start)
+            beagle_dict['rank_true'].append(np.linalg.matrix_rank(true_haplotypes))
+            beagle_dict['rank_phased'].append(np.linalg.matrix_rank(phased_haplotypes))
+            beagle_dict['nuclear_norm_true'].append(np.linalg.norm(true_haplotypes, 'nuc'))
+            beagle_dict['nuclear_norm_phased'].append(np.linalg.norm(phased_haplotypes, 'nuc'))
+            beagle_dict['switch_error'].append(switch_error(phased_haplotypes, true_haplotypes))
+            beagle_dict['positions_phased'].append(np.sum(unphased_haplotypes == -1) / 2)
+            beagle_dict['time_to_phase'].append(time.time() - time_start)
 
         # convert to numpy arrays
         phission_dict['rank_true'] = np.array(phission_dict['rank_true'])
@@ -144,6 +145,8 @@ def main(num_experiments,
     return phission_stats, beagle_stats
 
 if __name__ == '__main__':
+    time_start = time.time()
+
     parser = argparse.ArgumentParser(description='Phase!')
     parser.add_argument('--num-experiments', type=int, help='number of experiments to run for each (hap, snp) pair')
     parser.add_argument('--num-snps', type=int, help='number of snps to include')
@@ -152,6 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('--length', type=float, default=5e3, help='haplotype length (msprime parameter)')
     parser.add_argument('--recombination-rate', type=float, default=2e-8, help='recombination rate (msprime parameter)')
     parser.add_argument('--mutation-rate', type=float, default=2e-8, help='mutation rate (msprime parameter)')
+    parser.add_argument('--mu', type=float, default=0.0, help='hyperparameter for l1 norm')
     parser.add_argument('--seed', type=int, default=None, help='random seed (msprime parameter)')
     args = parser.parse_args()
 
@@ -177,14 +181,17 @@ if __name__ == '__main__':
     #                       (160, 160)]
 
     # I'm just setting a default for this for now.
-    num_haps_snps_list = [(20, 20), (160, 80)]
+    num_haps_snps_list = [(10, 10), (20, 20), (40, 20), (80, 40)]
     phission_stats, beagle_stats = main(args.num_experiments,
                                         num_haps_snps_list,
                                         args.Ne,
                                         args.length,
                                         args.recombination_rate,
-                                        args.mutation_rate)
+                                        args.mutation_rate,
+                                        args.mu)
     with open('phission_stats.pkl', 'wb') as f:
         pickle.dump(phission_stats, f)
     with open('beagle_stats.pkl', 'wb') as f:
         pickle.dump(beagle_stats, f)
+
+    print('time elapsed: {}'.format(time.time() - time_start))
