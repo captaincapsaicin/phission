@@ -33,7 +33,7 @@ def nuclear_norm_solve(unphased, mask):
     constraints += get_sum_to_1_constraints(mask, X)
     constraints += get_symmetry_breaking_constraints(mask, X)
     problem = cvx.Problem(objective, constraints)
-    problem.solve()
+    problem.solve(solver='SCS')
     return X.value
 
 
