@@ -12,7 +12,6 @@ from utils import read_haplotype_matrix_from_vcf, print_stats, write_vcf_from_ha
 
 BEAGLE_OUTPUT_DIR = 'beagle'
 INPUT_VCF = '/'.join([BEAGLE_OUTPUT_DIR, 'input.vcf'])
-NEW_INPUT_VCF = 'beagle/new_input_vcf.vcf'
 BEAGLE_OUTPUT_PATH = '/'.join([BEAGLE_OUTPUT_DIR, 'beagle_output'])
 BEAGLE_JAR_PATH = 'beagle.27Jan18.7e1.jar'
 BEAGLE_OUTPUT_VCF = BEAGLE_OUTPUT_PATH + '.vcf'
