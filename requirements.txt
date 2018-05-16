@@ -1,5 +1,4 @@
 cvxpy
-gzip
 msprime
 numpy
 pytest
