@@ -133,7 +133,7 @@ if __name__ == '__main__':
     #                       (160, 160)]
 
     # I'm just setting a default for this for now.
-    num_haps_snps_list = [(20, 20)]
+    num_haps_snps_list = [(100, 10), (100, 20), (500, 10), (500, 20), (1000, 10), (1000, 20)]
     phission_stats, beagle_stats = main(args.num_experiments,
                                         num_haps_snps_list,
                                         args.Ne,

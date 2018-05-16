@@ -1,6 +1,8 @@
 import cvxpy as cvx
 import numpy as np
 
+import time
+
 
 def phission_phase(unphased):
     """
@@ -26,14 +28,28 @@ def nuclear_norm_solve(unphased, mask):
     X: m x n array
         completed matrix
     """
+    start_time = time.time()
     X = cvx.Variable(*unphased.shape)
     objective = cvx.Minimize(cvx.norm(X, "nuc"))
     # equality constraints
+    # print('equality constraints')
     constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
+    # print(time.time() - start_time)
+    # print('# of equality constraints: {}'.format(np.count_nonzero(mask)))
+    # print('sum to 1 constraints')
     constraints += get_sum_to_1_constraints(mask, X)
+    # print(time.time() - start_time)
+    # print('# of sum_to_1 constraints: {}'.format(len(get_sum_to_1_constraints(mask, X))))
+    # print('symmetry breaking constraints')
     constraints += get_symmetry_breaking_constraints(mask, X)
+    # print(time.time() - start_time)
+    # print('# of symmetry_breaking constraints: {}'.format(len(get_symmetry_breaking_constraints(mask, X))))
+
     problem = cvx.Problem(objective, constraints)
-    problem.solve()
+
+    problem.solve(solver='SCS', verbose=False)
+    # print('solve')
+    # print(time.time() - start_time)
     return X.value
 
 
