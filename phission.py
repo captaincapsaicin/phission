@@ -12,7 +12,7 @@ def phission_phase(unphased):
     return np.matrix.round(X).astype(int)
 
 
-def nuclear_norm_solve(unphased, mask):
+def nuclear_norm_solve(unphased, mask, mu=1):
     """
     Parameters:
     -----------
@@ -20,20 +20,32 @@ def nuclear_norm_solve(unphased, mask):
         matrix we want to complete
     mask : m x n array
         matrix with entries zero (if missing) or one (if present)
+    mu : scalar
+        constant tradeoff between rank and 4 gamete test default = 1
 
     Returns:
     --------
     X: m x n array
         completed matrix
     """
-    X = cvx.Variable(*unphased.shape)
-    objective = cvx.Minimize(cvx.norm(X, "nuc"))
+    mu_param = cvx.Parameter(nonneg=True, value=mu)
+
+    X_columns = []
+    rows, columns = unphased.shape
+    for i in range(columns):
+        X_columns.append(cvx.Variable(rows, 1))
+    X = cvx.Variable(unphased.shape)
+
+    objective = cvx.Minimize(cvx.norm(X, p='nuc') + mu_param*four_gamete_loss(X_columns))
+
     # equality constraints
-    constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
-    constraints += get_sum_to_1_constraints(mask, X)
+    constraints = [X == cvx.vstack(X_columns).T]  # matrix building constraints. hstack doesn't work. vstack needed
+    constraints += [cvx.multiply(mask, (X - unphased)) == np.zeros(unphased.shape)]  # equality of unphased positions
     constraints += get_symmetry_breaking_constraints(mask, X)
+    constraints += get_sum_to_1_constraints(mask, X)
+
     problem = cvx.Problem(objective, constraints)
-    problem.solve(solver='SCS')
+    problem.solve(solver='SCS')  # other solvers are failing all over the place
     return X.value
 
 
@@ -69,6 +81,19 @@ def get_sum_to_1_constraints(mask, X):
     for i, j in indexes:
         constraints.append((X[i, j] + X[i + 1, j]) == 1)
     return constraints
+
+
+def four_gamete_loss(X_columns):
+    num_columns = len(X_columns)
+    all_losses = []
+    for i in range(num_columns):
+        for j in range(i + 1, num_columns):
+            # TODO : figure out warning nonconvex
+            all_losses.append(-cvx.log1p(X_columns[i].T*X_columns[j]))
+            all_losses.append(-cvx.log1p((1 - X_columns[i]).T*X_columns[j]))
+            all_losses.append(-cvx.log1p(X_columns[i].T*(1 - X_columns[j])))
+            all_losses.append(-cvx.log1p((1 - X_columns[i]).T*(1 - X_columns[j])))
+    return np.sum(all_losses)  # this should return a cvx expression
 
 
 def get_mask(A):

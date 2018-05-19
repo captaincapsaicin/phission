@@ -35,6 +35,11 @@ def switch_error(observed, expected):
                     used_free_pass.add(o_i)
                     used_free_pass.add(o_i + 1)
                 else:
+                    # TODO: remove (debugging only)
+                    if observed[o_i, j] == 0:
+                        observed[o_i, j] = 8
+                    if observed[o_i, j] == 1:
+                        observed[o_i, j] = 7
                     switch_errors += 1
             # we also revoke your free pass if you've passed your first heterozygous site
             # again which will only occur while o_i is still even
@@ -114,7 +119,8 @@ def print_stats(true_haplotypes, unphased_haplotypes, phased_haplotypes, print_m
 
     if print_matrices:
         print('\n')
-        border = -8*np.ones((true_haplotypes.shape[0], 1))
+        print('expected -999 observed')
+        border = -999*np.ones((true_haplotypes.shape[0], 1))
         print(np.hstack([true_haplotypes, border, phased_haplotypes]).astype(int))
 
 
