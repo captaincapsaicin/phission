@@ -26,10 +26,10 @@ def nuclear_norm_solve(unphased, mask):
     X: m x n array
         completed matrix
     """
-    X = cvx.Variable(*unphased.shape)
-    objective = cvx.Minimize(cvx.norm(X, "nuc"))
+    X = cvx.Variable(unphased.shape)
+    objective = cvx.Minimize(cvx.norm(X, 'nuc'))
     # equality constraints
-    constraints = [cvx.mul_elemwise(mask, X - unphased) == np.zeros(unphased.shape)]
+    constraints = [cvx.multiply(mask, X - unphased) == np.zeros(unphased.shape)]
     constraints += get_sum_to_1_constraints(mask, X)
     constraints += get_symmetry_breaking_constraints(mask, X)
     problem = cvx.Problem(objective, constraints)

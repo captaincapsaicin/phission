@@ -1,4 +1,4 @@
-cvxpy
+cvxpy>=1.0
 msprime
 numpy
 pytest
